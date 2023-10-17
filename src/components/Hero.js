@@ -41,8 +41,12 @@ function RotatingBrain({modelDirectory, containerRef, size, depth}) {
     const [uniforms, setUniforms] = useState({uHover: 0});
     const [uMaxDepth, setUMaxDepth] = useState(depth + (1.0 - size));
 
-    const {camera, scene } = useThree();
+    const {scene } = useThree();
     const [isHovered, setIsHovered] = useState(false);
+
+    const point = new Vector3();
+
+    const tl = gsap.timeline({paused: true});
 
     useEffect(() => {
         if (instancedBrainRef.current) {
@@ -89,7 +93,7 @@ void main() {
       d = 4.5;  // Reset or reduce the influence, e.g., set distance to maximum
     }
     
-  float c = smoothstep(0.30, 0.0, d);
+  float c = smoothstep(0.10, 0.0, d);
   
    // Interpolate the color based on distance
     vColor = mix(uColor, vec3(0.61, 0.49, 0.96), c);
@@ -173,12 +177,12 @@ void main() {
             mesh.setUniformAt('uColor', i , colors[colorIndex])
 
         }
-        // Start the animation
+
         for (let i = 0; i < mesh.count; i++) {
             const targetPosition = mesh.userData.positions[i];
             const initialPosition = randomPositions[i];
 
-            gsap.fromTo(dummy.position, {
+            tl.fromTo(dummy.position, {
                 x: initialPosition[0],
                 y: initialPosition[1],
                 z: initialPosition[2]
@@ -186,8 +190,7 @@ void main() {
                 x: targetPosition[0],
                 y: targetPosition[1],
                 z: targetPosition[2],
-                duration: 1,
-                delay: 2,
+                ease: 'power2.out',
                 onUpdate: () => {
                     dummy.updateMatrix();
                     mesh.setMatrixAt(i, dummy.matrix);
@@ -195,6 +198,7 @@ void main() {
                 }
             });
         }
+
         scene.add(mesh);
 
         instancedBrainRef.current = mesh;  // Set the reference to mesh
@@ -203,9 +207,6 @@ void main() {
             scene.remove(mesh);
         } // Cleanup on component unmount
     }, []); // Empty dependency array to run only once on mount and unmount
-
-
-    const point = new Vector3();
 
     function animateHoverUniform(value, instancedMesh) {
         gsap.to(uniforms, {
@@ -219,6 +220,20 @@ void main() {
         })
     }
 
+    const handleScroll = () => {
+        const totalScrollHeight = document.documentElement.scrollHeight - window.innerHeight;
+        const scrolled = window.scrollY;
+        tl.progress((scrolled / totalScrollHeight));
+    };
+
+    useEffect(() => {
+
+        window.addEventListener('scroll', handleScroll);
+        return () => {
+            window.removeEventListener('scroll', handleScroll);
+        };
+    }, []);
+
     const handleMouseMove = (event) => {
 
         // Calculate mouse position in normalized device coordinates
@@ -226,14 +241,13 @@ void main() {
         const x = (event.clientX - rect.left) / rect.width * 2 - 1;
         const y = -(event.clientY - rect.top) / rect.height * 2 + 1;
 
+
         if (isHovered) {
             setIsHovered(false)
             animateHoverUniform(0, instancedBrainRef.current)
         } else { // Mouseenter
-            if (!isHovered) {
-                setIsHovered(true)
-                animateHoverUniform(1, instancedBrainRef.current)
-            }
+            setIsHovered(true)
+            animateHoverUniform(1, instancedBrainRef.current)
         }
 
         gsap.to(point, {
@@ -265,16 +279,11 @@ void main() {
     useFrame(() => {
         if (instancedBrainRef.current && brain) {
             instancedBrainRef.current.rotation.y += 0.002;
-            brain.rotation.y += 0.002;
-            brain.updateMatrix();
-            brain.updateMatrixWorld(true);
         }
     });
 
     return null;
 }
-
-
 
 function HeroSection() {
     const containerRef = useRef();
@@ -300,7 +309,7 @@ function HeroSection() {
 
     return (
         <div ref={containerRef} className="hero-section">
-            <Canvas style={{position:"sticky"}} camera={{position: [0, 0, 1.2], fov: 75, near: 0.1, far: 100}}>
+            <Canvas camera={{position: [0, 0, 1.2], fov: 75, near: 0.1, far: 100}}>
                 <ambientLight intensity={0.5} />
                 <directionalLight position={[0, 10, 5]} />
                 <RotatingBrain modelDirectory={'/static/brain.glb'} containerRef={containerRef} size={size} depth={0.7}/>
@@ -308,9 +317,5 @@ function HeroSection() {
         </div>
     );
 }
-
-
-
-
 
 export default HeroSection;

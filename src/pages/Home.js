@@ -35,6 +35,7 @@ function Home({page, onFinish, colors, circleRefs}) {
     return (
         <>
             <div className="container">
+                <HeroSection/>
                 <div className="header">
                     <h1 className="code-text"> {AnimatedText([
                         intro + "programmer",
@@ -47,7 +48,6 @@ function Home({page, onFinish, colors, circleRefs}) {
                 </div>
                 <Description page={page} colors={colors} descriptions={descriptions} onFinish={onFinish} circleRefs={circleRefs}/>
             </div>
-            <HeroSection/>
         </>
     )
 }
