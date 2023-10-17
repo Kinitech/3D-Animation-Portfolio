@@ -182,7 +182,8 @@ void main() {
             const targetPosition = mesh.userData.positions[i];
             const initialPosition = randomPositions[i];
 
-            tl.fromTo(dummy.position, {
+            // Create a tween for the current animation
+            const tween = gsap.fromTo(dummy.position, {
                 x: initialPosition[0],
                 y: initialPosition[1],
                 z: initialPosition[2]
@@ -190,14 +191,18 @@ void main() {
                 x: targetPosition[0],
                 y: targetPosition[1],
                 z: targetPosition[2],
-                ease: 'power2.out',
+                duration: 1.0,
                 onUpdate: () => {
                     dummy.updateMatrix();
                     mesh.setMatrixAt(i, dummy.matrix);
                     mesh.instanceMatrix.needsUpdate = true;
                 }
             });
+
+            // Add the tween to the timeline at the 0-second mark, so they all start simultaneously
+            tl.add(tween, 0);
         }
+
 
         scene.add(mesh);
 
