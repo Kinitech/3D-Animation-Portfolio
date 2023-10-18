@@ -1,5 +1,5 @@
 import './Hero.css';
-import React, {useEffect, useMemo, useRef, useState} from 'react';
+import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {Canvas, useFrame, useLoader, useThree} from 'react-three-fiber';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader';
 import {
@@ -11,26 +11,7 @@ import {
 } from "three";
 import { InstancedUniformsMesh } from 'three-instanced-uniforms-mesh'
 import {gsap} from 'gsap'
-
-const colors = [
-    new Color(0x8A2BE2), // BlueViolet
-    new Color(0x9370DB), // MediumPurple
-    new Color(0x7B68EE), // MediumSlateBlue
-    new Color(0x6A5ACD), // SlateBlue
-];
-const color = [
-    new Color(0x8A2BE2), // BlueViolet
-    new Color(0x383838), // DarkGray
-    new Color(0x545454), // Gray
-    new Color(0x707070), // MediumGray
-    new Color(0x8C8C8C), // Silver
-    new Color(0xA8A8A8), // LightGray
-    new Color(0xC4C4C4), // VeryLightGray
-];
-
-
-
-
+import {throttle} from "lodash";
 
 function RotatingBrain({modelDirectory, containerRef, size, depth}) {
 
@@ -43,7 +24,12 @@ function RotatingBrain({modelDirectory, containerRef, size, depth}) {
 
     const {scene } = useThree();
     const [isHovered, setIsHovered] = useState(false);
-
+    const colors = useMemo( () => [
+        new Color(0x8A2BE2), // BlueViolet
+        new Color(0x9370DB), // MediumPurple
+        new Color(0x7B68EE), // MediumSlateBlue
+        new Color(0x6A5ACD), // SlateBlue
+    ], []);
     const point = new Vector3();
 
     const tl = gsap.timeline({paused: true});
@@ -191,7 +177,6 @@ void main() {
                 x: targetPosition[0],
                 y: targetPosition[1],
                 z: targetPosition[2],
-                duration: 1.0,
                 onUpdate: () => {
                     dummy.updateMatrix();
                     mesh.setMatrixAt(i, dummy.matrix);
@@ -202,7 +187,6 @@ void main() {
             // Add the tween to the timeline at the 0-second mark, so they all start simultaneously
             tl.add(tween, 0);
         }
-
 
         scene.add(mesh);
 
@@ -225,27 +209,25 @@ void main() {
         })
     }
 
-    const handleScroll = () => {
+    const handleScroll = useCallback(() => {
         const totalScrollHeight = document.documentElement.scrollHeight - window.innerHeight;
         const scrolled = window.scrollY;
         tl.progress((scrolled / totalScrollHeight));
-    };
-
-    useEffect(() => {
-
-        window.addEventListener('scroll', handleScroll);
-        return () => {
-            window.removeEventListener('scroll', handleScroll);
-        };
     }, []);
 
-    const handleMouseMove = (event) => {
+    useEffect(() => {
+        const throttledHandleScroll = throttle(handleScroll, 5);
+        window.addEventListener('scroll', throttledHandleScroll);
+        return () => {
+            window.removeEventListener('scroll', throttledHandleScroll);
+        };
+    }, [handleScroll]);
 
+    const handleMouseMove = useCallback((event) => {
         // Calculate mouse position in normalized device coordinates
         const rect = containerRef.current.getBoundingClientRect();
         const x = (event.clientX - rect.left) / rect.width * 2 - 1;
         const y = -(event.clientY - rect.top) / rect.height * 2 + 1;
-
 
         if (isHovered) {
             setIsHovered(false)
@@ -267,7 +249,7 @@ void main() {
                 }
             }
         })
-    };
+    }, []);
 
 
     useEffect(() => {
