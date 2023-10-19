@@ -22,7 +22,7 @@ function RotatingBrain({modelDirectory, containerRef, size, depth}) {
     const [uniforms, setUniforms] = useState({uHover: 0});
     const [uMaxDepth, setUMaxDepth] = useState(depth + (1.0 - size));
 
-    const {scene } = useThree();
+    const {camera, scene } = useThree();
     const [isHovered, setIsHovered] = useState(false);
     const colors = useMemo( () => [
         new Color(0x8A2BE2), // BlueViolet
@@ -59,10 +59,10 @@ varying vec3 vColor;
 #define PI 3.14159265359
 
 mat2 rotate(float angle) {
-  float s = sin(angle);
-  float c = cos(angle);
+    float s = sin(angle);
+    float c = cos(angle);
 
-  return mat2(c, -s, s, c);
+    return mat2(c, -s, s, c);
 }
          
 void main() {
@@ -70,34 +70,27 @@ void main() {
     mvPosition = instanceMatrix * mvPosition;
     
     vec4 clipSpacePosition = projectionMatrix * modelViewMatrix * mvPosition;
-    vec2 ndc = clipSpacePosition.xy / clipSpacePosition.w;  // Convert to NDC
+    vec3 ndc = clipSpacePosition.xyz / clipSpacePosition.w;  // Convert to NDC
     
-    float d = distance(uPointer.xy, ndc);  // We now measure the distance in NDC
-
-    // Check if the depth exceeds the hardcoded maximum depth
-    if (clipSpacePosition.z > uMaxDepth && clipSpacePosition.y > -0.5 - (` + String(depth) + `- uMaxDepth) * 1.5) {
-      d = 4.5;  // Reset or reduce the influence, e.g., set distance to maximum
-    }
+    float d = distance(uPointer, ndc);  // We now measure the distance in NDC
     
-  float c = smoothstep(0.10, 0.0, d);
-  
-   // Interpolate the color based on distance
+    float c = smoothstep(0.5, 0.4, d);
+    
+    // Interpolate the color based on distance
     vColor = mix(uColor, vec3(0.61, 0.49, 0.96), c);
+    
+    float scale = uScale + c * 2.0 * uHover;
+    vec3 pos = position;
+    pos *= scale;
+    pos.xz *= rotate(PI*c*uRotation + PI*uRotation*0.43);
+    pos.xy *= rotate(PI*c*uRotation + PI*uRotation*0.71);
 
-  float scale = uScale + c * 1.5 * uHover;
-  vec3 pos = position;
-  pos *= scale;
-  pos.xz *= rotate(PI*c*uRotation + PI*uRotation*0.43);
-  pos.xy *= rotate(PI*c*uRotation + PI*uRotation*0.71);
+    mvPosition = instanceMatrix * vec4(pos, 1.0);
 
-  mvPosition = instanceMatrix * vec4(pos, 1.0);
-
-  gl_Position = projectionMatrix * modelViewMatrix * mvPosition;
-
+    gl_Position = projectionMatrix * modelViewMatrix * mvPosition;
 }
     `,
             fragmentShader: `
-uniform vec3 uColor;
 varying vec3 vColor;
             
 void main() {
@@ -141,7 +134,7 @@ void main() {
             randomPositions.push([...randomPosition]);
 
             // Calculate a random scale between 0.001 and 0.005
-            const scale = 5
+            const scale = 2 * Math.random() + 5;
             scales[i] = scale;  // Store the random scale
 
             // Set the random position of the dummy object
@@ -197,13 +190,13 @@ void main() {
         } // Cleanup on component unmount
     }, []); // Empty dependency array to run only once on mount and unmount
 
-    function animateHoverUniform(value, instancedMesh) {
+    function animateHoverUniform(value) {
         gsap.to(uniforms, {
             uHover: value,
             duration: 0.25,
             onUpdate: () => {
-                for (let i = 0; i < instancedMesh.count; i++) {
-                    instancedMesh.setUniformAt('uHover', i, uniforms.uHover)
+                for (let i = 0; i < instancedBrainRef.current.count; i++) {
+                    instancedBrainRef.current.setUniformAt('uHover', i, uniforms.uHover)
                 }
             }
         })
@@ -223,33 +216,39 @@ void main() {
         };
     }, [handleScroll]);
 
+
+
+// Modify your handleMouseMove function like this
     const handleMouseMove = useCallback((event) => {
         // Calculate mouse position in normalized device coordinates
         const rect = containerRef.current.getBoundingClientRect();
         const x = (event.clientX - rect.left) / rect.width * 2 - 1;
         const y = -(event.clientY - rect.top) / rect.height * 2 + 1;
 
+        // Update the picking ray with the camera and mouse position
         if (isHovered) {
             setIsHovered(false)
-            animateHoverUniform(0, instancedBrainRef.current)
+            animateHoverUniform(0)
         } else { // Mouseenter
             setIsHovered(true)
-            animateHoverUniform(1, instancedBrainRef.current)
+            animateHoverUniform(1)
         }
 
         gsap.to(point, {
             x: () => x,
             y: () => y,
-            z: 0,
+            z: 0.35,
             overwrite: true,
             duration: 0.3,
             onUpdate: () => {
+                // Only animate the spheres in animatedSpheres
                 for (let i = 0; i < instancedBrainRef.current.count; i++) {
                     instancedBrainRef.current.setUniformAt('uPointer', i, point)
                 }
             }
         })
     }, []);
+
 
 
     useEffect(() => {
