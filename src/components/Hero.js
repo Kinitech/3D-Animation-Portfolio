@@ -13,14 +13,13 @@ import { InstancedUniformsMesh } from 'three-instanced-uniforms-mesh'
 import {gsap} from 'gsap'
 import {throttle} from "lodash";
 
-function RotatingBrain({modelDirectory, containerRef, size, depth}) {
+function RotatingBrain({modelDirectory, containerRef, size}) {
 
     const instancedBrainRef = useRef();
     const gltf = useLoader(GLTFLoader, modelDirectory);
     const brain = gltf.scene.children[0];
 
     const [uniforms, setUniforms] = useState({uHover: 0});
-    const [uMaxDepth, setUMaxDepth] = useState(depth + (1.0 - size));
 
     const {camera, scene } = useThree();
     const [isHovered, setIsHovered] = useState(false);
@@ -37,11 +36,8 @@ function RotatingBrain({modelDirectory, containerRef, size, depth}) {
     useEffect(() => {
         if (instancedBrainRef.current) {
             instancedBrainRef.current.scale.set(size, size, size);
-            for (let i = 0; i < instancedBrainRef.current.count; i++) {
-                instancedBrainRef.current.setUniformAt('uMaxDepth', i, depth + (1.0 - size)/3)
-            }
         }
-    }, [instancedBrainRef.current, size])
+    }, [instancedBrainRef.current, size]);
 
     useEffect(() => {
         const geometry = new SphereGeometry(0.002, 1, 1)
@@ -74,12 +70,12 @@ void main() {
     
     float d = distance(uPointer, ndc);  // We now measure the distance in NDC
     
-    float c = smoothstep(0.5, 0.4, d);
+    float c = smoothstep(0.5, 0.15, d);
     
     // Interpolate the color based on distance
-    vColor = mix(uColor, vec3(0.61, 0.49, 0.96), c);
+    vColor = mix(uColor, vec3(0.61, 0.49, 0.96), c*1.5);
     
-    float scale = uScale + c * 2.0 * uHover;
+    float scale = uScale + c * 3.0 * uHover;
     vec3 pos = position;
     pos *= scale;
     pos.xz *= rotate(PI*c*uRotation + PI*uRotation*0.43);
@@ -106,7 +102,6 @@ void main() {
             uRotation: { value: 0 },
             uScale: { value: 0 },
             uHover: { value: uniforms.uHover },
-            uMaxDepth: { value: uMaxDepth }
         }
         });
 
@@ -237,7 +232,7 @@ void main() {
         gsap.to(point, {
             x: () => x,
             y: () => y,
-            z: 0.35,
+            z: 0.39,
             overwrite: true,
             duration: 0.3,
             onUpdate: () => {
@@ -298,7 +293,7 @@ function HeroSection() {
             <Canvas camera={{position: [0, 0, 1.2], fov: 75, near: 0.1, far: 100}}>
                 <ambientLight intensity={0.5} />
                 <directionalLight position={[0, 10, 5]} />
-                <RotatingBrain modelDirectory={'/static/brain.glb'} containerRef={containerRef} size={size} depth={0.7}/>
+                <RotatingBrain modelDirectory={'/static/brain.glb'} containerRef={containerRef} size={size}/>
             </Canvas>
         </div>
     );
