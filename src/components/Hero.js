@@ -3,7 +3,7 @@ import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {Canvas, useFrame, useLoader, useThree} from 'react-three-fiber';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader';
 import {
-    BoxGeometry, Color, DoubleSide, InstancedBufferAttribute,
+    BoxGeometry, Color, CylinderGeometry, DoubleSide, InstancedBufferAttribute,
     InstancedMesh, Matrix4,
     Object3D, Raycaster,
     ShaderMaterial, SphereGeometry, Vector2,
@@ -13,6 +13,46 @@ import { InstancedUniformsMesh } from 'three-instanced-uniforms-mesh'
 import {gsap} from 'gsap'
 import {throttle} from "lodash";
 
+function createTween(i, mesh, dummy, initialPositions, targetPositions) {
+    const initialPosition = initialPositions[i];
+    const targetPosition = targetPositions[i];
+
+    return gsap.fromTo(dummy.position, {
+        x: initialPosition[0],
+        y: initialPosition[1],
+        z: initialPosition[2]
+    }, {
+        x: targetPosition[0],
+        y: targetPosition[1],
+        z: targetPosition[2],
+        duration: 1.0,
+        onUpdate: () => {
+            dummy.updateMatrix();
+            mesh.setMatrixAt(i, dummy.matrix);
+            mesh.instanceMatrix.needsUpdate = true;
+        }
+    });
+}
+
+function initialiseSphere(i, mesh, dummy, initialPosition) {
+
+    // Set the random position of the dummy object
+    dummy.position.set(initialPosition[0], initialPosition[1], initialPosition[2]);
+    // Set the scale of the dummy object
+    const scale = 5 * Math.random() + 6;
+    dummy.scale.set(scale, scale, scale);
+    // Set the rotation of the dummy object
+    const rotation = [Math.random() * 2 * Math.PI, Math.random() * 2 * Math.PI, Math.random() * 2 * Math.PI]
+    dummy.rotation.set(rotation[0], rotation[1], rotation[2]);
+
+    // Update the matrix of the dummy object
+    dummy.updateMatrix()
+    // Set the sphere matrix to the matrix of the dummy object
+    mesh.setMatrixAt(i, dummy.matrix)
+
+}
+
+
 function RotatingBrain({modelDirectory, containerRef, size}) {
 
     const instancedBrainRef = useRef();
@@ -21,7 +61,7 @@ function RotatingBrain({modelDirectory, containerRef, size}) {
 
     const [uniforms, setUniforms] = useState({uHover: 0});
 
-    const {camera, scene } = useThree();
+    const {scene } = useThree();
     const [isHovered, setIsHovered] = useState(false);
     const colors = useMemo( () => [
         new Color(0x8A2BE2), // BlueViolet
@@ -49,7 +89,6 @@ uniform float uRotation;
 uniform float uScale;
 uniform float uHover;
 uniform float uMaxDepth;
-
 varying vec3 vColor;
 
 #define PI 3.14159265359
@@ -73,13 +112,13 @@ void main() {
     float c = smoothstep(0.5, 0.15, d);
     
     // Interpolate the color based on distance
-    vColor = mix(uColor, vec3(0.61, 0.49, 0.96), c*1.5);
+    vColor = mix(uColor, vec3(0.61, 0.49, 0.96), c * 1.5);
     
     float scale = uScale + c * 3.0 * uHover;
     vec3 pos = position;
     pos *= scale;
-    pos.xz *= rotate(PI*c*uRotation + PI*uRotation*0.43);
-    pos.xy *= rotate(PI*c*uRotation + PI*uRotation*0.71);
+    pos.xz *= rotate(PI * c * uRotation + PI * uRotation * 0.43);
+    pos.xy *= rotate(PI * c * uRotation + PI * uRotation * 0.71);
 
     mvPosition = instanceMatrix * vec4(pos, 1.0);
 
@@ -99,8 +138,8 @@ void main() {
         uniforms: {
             uPointer: { value: new Vector3(100, 100, 100) },
             uColor: { value: new Color() },
-            uRotation: { value: 0 },
-            uScale: { value: 0 },
+            uRotation: { value: Math.random() * Math.PI },
+            uScale: { value: 1 },
             uHover: { value: uniforms.uHover },
         }
         });
@@ -108,76 +147,57 @@ void main() {
 
         const mesh = new InstancedUniformsMesh(geometry, material, brain.geometry.attributes.position.count);
 
-        const scales = new Float32Array(mesh.count);  // Array to hold random scales
-        const dummy = new Object3D()
 
         // Store the initial random/actual positions for each instance
-        const randomPositions = [];
-        mesh.userData.positions = mesh.userData.positions || [];
+        const position1_randomPositions = [];
+        const position2_brainPositions = [];
+        const position3_binaryPositions = [];
+
 
         for (let i = 0; i < mesh.count; i++) {
 
-            const finalPosition = brain.geometry.attributes.position.array.slice(i * 3, (i * 3) + 3);
+            const dummy = new Object3D()
 
-            mesh.userData.positions.push([finalPosition[0], finalPosition[1], finalPosition[2]]);
-
+            // - Position 1 : Store the initial random positions for each instance
             const randomPosition = [
                 (Math.random() - 0.5),
                 (Math.random() - 0.5),
                 (Math.random() - 0.5),
             ];
-            randomPositions.push([...randomPosition]);
+            position1_randomPositions.push([...randomPosition]);
 
-            // Calculate a random scale between 0.001 and 0.005
-            const scale = 2 * Math.random() + 5;
-            scales[i] = scale;  // Store the random scale
+            // - Position 2 : Store the brain positions for each instance
+            const brainPositions = brain.geometry.attributes.position.array.slice(i * 3, (i * 3) + 3);
+            position2_brainPositions.push([...brainPositions]);
 
-            // Set the random position of the dummy object
-            dummy.position.set(randomPosition[0], randomPosition[1], randomPosition[2]);
-            // Set the scale of the dummy object
-            dummy.scale.set(scale, scale, scale);
-            // Set the rotation of the dummy object
-            dummy.rotation.set(Math.random() * 2 * Math.PI, Math.random() * 2 * Math.PI, Math.random() * 2 * Math.PI);
 
-            dummy.updateMatrix()
+            // - Setting up initial state of the mesh
+            initialiseSphere(i, mesh, dummy, randomPosition)
 
-            mesh.setMatrixAt(i, dummy.matrix)
-
-            mesh.setUniformAt('uRotation', i , Math.random() * 2 - 1)
-
-            mesh.setUniformAt('uScale', i, Math.random() + 1)
-
+            // Set the color of the sphere
             const colorIndex = Math.floor( Math.random() * colors.length);
             mesh.setUniformAt('uColor', i , colors[colorIndex])
 
+            // - Create tweens for each sphere
+
+            // Random position -> Brain position
+            tl.add(createTween(i, mesh, dummy, position1_randomPositions, position2_brainPositions), 0.0)
+
+            // Brain position -> Binary position
+            tl.add(createTween(i, mesh, dummy, position2_brainPositions, position1_randomPositions), 1.0)
+
+
+            // Data Visualization: Stretched out wave, spaced out spheres, almost like a 3d equalizer or something
+
         }
 
-        for (let i = 0; i < mesh.count; i++) {
-            const targetPosition = mesh.userData.positions[i];
-            const initialPosition = randomPositions[i];
+        // Preload the GSAP timeline
+        tl.progress(1).progress(0)
 
-            // Create a tween for the current animation
-            const tween = gsap.fromTo(dummy.position, {
-                x: initialPosition[0],
-                y: initialPosition[1],
-                z: initialPosition[2]
-            }, {
-                x: targetPosition[0],
-                y: targetPosition[1],
-                z: targetPosition[2],
-                onUpdate: () => {
-                    dummy.updateMatrix();
-                    mesh.setMatrixAt(i, dummy.matrix);
-                    mesh.instanceMatrix.needsUpdate = true;
-                }
-            });
 
-            // Add the tween to the timeline at the 0-second mark, so they all start simultaneously
-            tl.add(tween, 0);
-        }
-
+        // Add the mesh to the scene
         scene.add(mesh);
-
+        // Set the reference to mesh
         instancedBrainRef.current = mesh;  // Set the reference to mesh
 
         return () => {
