@@ -1,7 +1,7 @@
 import SketchBackground from "../components/sketch";
 import Description from "../components/Description";
 import AnimatedText from "../components/AnimatedText";
-import HeroSection from "../components/Hero";
+import ThreeJSBackground from "../components/ThreeJSBackground";
 
 
 function Home({page, onFinish, colors, circleRefs}) {
@@ -35,7 +35,7 @@ function Home({page, onFinish, colors, circleRefs}) {
     return (
         <>
             <div className="container">
-                <HeroSection/>
+                <ThreeJSBackground/>
                 <div className="header">
                     <h1 className="code-text"> {AnimatedText([
                         intro + "programmer",

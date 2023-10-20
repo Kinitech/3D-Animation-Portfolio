@@ -170,6 +170,8 @@ void main() {
             const brainPositions = brain.geometry.attributes.position.array.slice(i * 3, (i * 3) + 3);
             position2_brainPositions.push([...brainPositions]);
 
+            // - Position 3 : Store the binary positions for each instance
+
 
             // - Setting up initial state of the mesh
             initialiseSphere(i, mesh, dummy, randomPosition)
@@ -286,7 +288,7 @@ void main() {
     return null;
 }
 
-function HeroSection() {
+function ThreeJSBackground() {
     const containerRef = useRef();
     const [size, setSize] = useState(1.2);
 
@@ -319,4 +321,4 @@ function HeroSection() {
     );
 }
 
-export default HeroSection;
+export default ThreeJSBackground;
