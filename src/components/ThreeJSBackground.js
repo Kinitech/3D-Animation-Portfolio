@@ -1,19 +1,13 @@
-import './Hero.css';
+import './ThreeJSBackground.css';
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {Canvas, useFrame, useLoader, useThree} from 'react-three-fiber';
-import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader';
-import {
-    BoxGeometry, Color, CylinderGeometry, DoubleSide, InstancedBufferAttribute,
-    InstancedMesh, Matrix4,
-    Object3D, Raycaster,
-    ShaderMaterial, SphereGeometry, Vector2,
-    Vector3
-} from "three";
-import { InstancedUniformsMesh } from 'three-instanced-uniforms-mesh'
+import {GLTFLoader} from 'three/examples/jsm/loaders/GLTFLoader';
+import {Color, Object3D, ShaderMaterial, SphereGeometry, Vector3} from "three";
+import {InstancedUniformsMesh} from 'three-instanced-uniforms-mesh'
 import {gsap} from 'gsap'
 import {throttle} from "lodash";
 
-function createTween(i, mesh, dummy, initialPositions, targetPositions) {
+function createTween(i, mesh, dummy, initialPositions, targetPositions, rotateFlag = 'y') {
     const initialPosition = initialPositions[i];
     const targetPosition = targetPositions[i];
 
@@ -28,6 +22,7 @@ function createTween(i, mesh, dummy, initialPositions, targetPositions) {
         duration: 1.0,
         onUpdate: () => {
             dummy.updateMatrix();
+            mesh.userData.rotateFlag = rotateFlag;
             mesh.setMatrixAt(i, dummy.matrix);
             mesh.instanceMatrix.needsUpdate = true;
         }
@@ -73,6 +68,8 @@ function RotatingBrain({modelDirectory, containerRef, size}) {
 
     const tl = gsap.timeline({paused: true});
 
+
+
     useEffect(() => {
         if (instancedBrainRef.current) {
             instancedBrainRef.current.scale.set(size, size, size);
@@ -82,77 +79,32 @@ function RotatingBrain({modelDirectory, containerRef, size}) {
     useEffect(() => {
         const geometry = new SphereGeometry(0.002, 1, 1)
         const material = new ShaderMaterial({
-            vertexShader: `   
-uniform vec3 uPointer;
-uniform vec3 uColor;
-uniform float uRotation;
-uniform float uScale;
-uniform float uHover;
-uniform float uMaxDepth;
-varying vec3 vColor;
-
-#define PI 3.14159265359
-
-mat2 rotate(float angle) {
-    float s = sin(angle);
-    float c = cos(angle);
-
-    return mat2(c, -s, s, c);
-}
-         
-void main() {
-  vec4 mvPosition = vec4(position, 1.0);
-    mvPosition = instanceMatrix * mvPosition;
-    
-    vec4 clipSpacePosition = projectionMatrix * modelViewMatrix * mvPosition;
-    vec3 ndc = clipSpacePosition.xyz / clipSpacePosition.w;  // Convert to NDC
-    
-    float d = distance(uPointer, ndc);  // We now measure the distance in NDC
-    
-    float c = smoothstep(0.5, 0.15, d);
-    
-    // Interpolate the color based on distance
-    vColor = mix(uColor, vec3(0.61, 0.49, 0.96), c * 1.5);
-    
-    float scale = uScale + c * 3.0 * uHover;
-    vec3 pos = position;
-    pos *= scale;
-    pos.xz *= rotate(PI * c * uRotation + PI * uRotation * 0.43);
-    pos.xy *= rotate(PI * c * uRotation + PI * uRotation * 0.71);
-
-    mvPosition = instanceMatrix * vec4(pos, 1.0);
-
-    gl_Position = projectionMatrix * modelViewMatrix * mvPosition;
-}
-    `,
-            fragmentShader: `
-varying vec3 vColor;
-            
-void main() {
-    gl_FragColor = vec4(vColor, 0.1);
-}
-
-    `,
-        wireframe: true,
-
-        uniforms: {
-            uPointer: { value: new Vector3(100, 100, 100) },
-            uColor: { value: new Color() },
-            uRotation: { value: Math.random() * Math.PI },
-            uScale: { value: 1 },
-            uHover: { value: uniforms.uHover },
-        }
+            vertexShader: require('../shaders/vertex.glsl.js').default,
+            fragmentShader: require('../shaders/fragment.glsl.js').default,
+            wireframe: true,
+            uniforms: {
+                uPointer: { value: new Vector3(100, 100, 100) },
+                uColor: { value: new Color() },
+                uRotation: { value: Math.random() * Math.PI },
+                uScale: { value: 1 },
+                uHover: { value: uniforms.uHover },
+            }
         });
 
-
         const mesh = new InstancedUniformsMesh(geometry, material, brain.geometry.attributes.position.count);
-
 
         // Store the initial random/actual positions for each instance
         const position1_randomPositions = [];
         const position2_brainPositions = [];
         const position3_binaryPositions = [];
 
+
+        // Position 3 Variables
+
+        const numberOfColumns = 100;
+        const cylinderRadius = 0.5;  // You can adjust this to increase or decrease the cylinder's radius.
+        const thetaSpacing = (2 * Math.PI) / numberOfColumns;  // Angle spacing for the columns.
+        const ySpacing = 0.05;  // Vertical spacing for the rows.
 
         for (let i = 0; i < mesh.count; i++) {
 
@@ -172,6 +124,16 @@ void main() {
 
             // - Position 3 : Store the binary positions for each instance
 
+            // - Position 3 : Store the binary positions for each instance
+            const column = i % numberOfColumns;
+            const row = Math.floor(i / numberOfColumns);
+            const theta = column * thetaSpacing;
+            const y = cylinderRadius * Math.cos(theta);
+
+            const x = row * ySpacing;
+            const z = cylinderRadius * Math.sin(theta);
+
+            position3_binaryPositions.push([x - 0.7, y, z]);
 
             // - Setting up initial state of the mesh
             initialiseSphere(i, mesh, dummy, randomPosition)
@@ -186,7 +148,7 @@ void main() {
             tl.add(createTween(i, mesh, dummy, position1_randomPositions, position2_brainPositions), 0.0)
 
             // Brain position -> Binary position
-            tl.add(createTween(i, mesh, dummy, position2_brainPositions, position1_randomPositions), 1.0)
+            tl.add(createTween(i, mesh, dummy, position2_brainPositions, position3_binaryPositions, 'x'), 1.0)
 
 
             // Data Visualization: Stretched out wave, spaced out spheres, almost like a 3d equalizer or something
@@ -280,8 +242,14 @@ void main() {
 
 
     useFrame(() => {
-        if (instancedBrainRef.current && brain) {
+        if (instancedBrainRef.current && instancedBrainRef.current.userData.rotateFlag === 'y') {
+            instancedBrainRef.current.rotation.x = 0;
             instancedBrainRef.current.rotation.y += 0.002;
+        } else {
+            instancedBrainRef.current.rotation.y = 0;
+            if (instancedBrainRef.current.userData.rotateFlag === 'x') {
+                instancedBrainRef.current.rotation.x += 0.002;
+            }
         }
     });
 
@@ -311,7 +279,7 @@ function ThreeJSBackground() {
     };
 
     return (
-        <div ref={containerRef} className="hero-section">
+        <div ref={containerRef} className="threejs-background">
             <Canvas camera={{position: [0, 0, 1.2], fov: 75, near: 0.1, far: 100}}>
                 <ambientLight intensity={0.5} />
                 <directionalLight position={[0, 10, 5]} />
