@@ -2,27 +2,35 @@ import './ThreeJSBackground.css';
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {Canvas, useFrame, useLoader, useThree} from 'react-three-fiber';
 import {GLTFLoader} from 'three/examples/jsm/loaders/GLTFLoader';
-import {Color, Object3D, ShaderMaterial, SphereGeometry, Vector3} from "three";
+import {Color, Euler, Object3D, Quaternion, ShaderMaterial, SphereGeometry, Vector3} from "three";
 import {InstancedUniformsMesh} from 'three-instanced-uniforms-mesh'
 import {gsap} from 'gsap'
 import {throttle} from "lodash";
 
-function createTween(i, mesh, dummy, initialPositions, targetPositions, rotateFlag = 'y') {
-    const initialPosition = initialPositions[i];
+function createTween(i, mesh, dummy, targetPositions, rotationAxis) {
+    const currentPosition = [dummy.position.x, dummy.position.y, dummy.position.z];
     const targetPosition = targetPositions[i];
 
+    function updateRotation() {
+        if (rotationAxis === 'x') {
+            mesh.userData.rotateFlag = {x: 1, y: 0}
+        } else {
+            mesh.userData.rotateFlag = {x: 0, y: 1}
+        }
+    }
+
     return gsap.fromTo(dummy.position, {
-        x: initialPosition[0],
-        y: initialPosition[1],
-        z: initialPosition[2]
+        x: currentPosition[0],
+        y: currentPosition[1],
+        z: currentPosition[2]
     }, {
         x: targetPosition[0],
         y: targetPosition[1],
         z: targetPosition[2],
         duration: 1.0,
         onUpdate: () => {
+            updateRotation();
             dummy.updateMatrix();
-            mesh.userData.rotateFlag = rotateFlag;
             mesh.setMatrixAt(i, dummy.matrix);
             mesh.instanceMatrix.needsUpdate = true;
         }
@@ -39,7 +47,6 @@ function initialiseSphere(i, mesh, dummy, initialPosition) {
     // Set the rotation of the dummy object
     const rotation = [Math.random() * 2 * Math.PI, Math.random() * 2 * Math.PI, Math.random() * 2 * Math.PI]
     dummy.rotation.set(rotation[0], rotation[1], rotation[2]);
-
     // Update the matrix of the dummy object
     dummy.updateMatrix()
     // Set the sphere matrix to the matrix of the dummy object
@@ -68,8 +75,6 @@ function RotatingBrain({modelDirectory, containerRef, size}) {
 
     const tl = gsap.timeline({paused: true});
 
-
-
     useEffect(() => {
         if (instancedBrainRef.current) {
             instancedBrainRef.current.scale.set(size, size, size);
@@ -92,12 +97,12 @@ function RotatingBrain({modelDirectory, containerRef, size}) {
         });
 
         const mesh = new InstancedUniformsMesh(geometry, material, brain.geometry.attributes.position.count);
+        mesh.userData.rotateFlag = {x: 0, y: 1}
 
         // Store the initial random/actual positions for each instance
         const position1_randomPositions = [];
         const position2_brainPositions = [];
         const position3_binaryPositions = [];
-
 
         // Position 3 Variables
 
@@ -123,8 +128,6 @@ function RotatingBrain({modelDirectory, containerRef, size}) {
             position2_brainPositions.push([...brainPositions]);
 
             // - Position 3 : Store the binary positions for each instance
-
-            // - Position 3 : Store the binary positions for each instance
             const column = i % numberOfColumns;
             const row = Math.floor(i / numberOfColumns);
             const theta = column * thetaSpacing;
@@ -145,11 +148,14 @@ function RotatingBrain({modelDirectory, containerRef, size}) {
             // - Create tweens for each sphere
 
             // Random position -> Brain position
-            tl.add(createTween(i, mesh, dummy, position1_randomPositions, position2_brainPositions), 0.0)
+            tl.add(createTween(i, mesh, dummy, position2_brainPositions, 'y'), 0.0)
+            // Set the position of the dummy object to the brain position
+            dummy.position.set(position2_brainPositions[i][0], position2_brainPositions[i][1], position2_brainPositions[i][2]);
 
             // Brain position -> Binary position
-            tl.add(createTween(i, mesh, dummy, position2_brainPositions, position3_binaryPositions, 'x'), 1.0)
-
+            tl.add(createTween(i, mesh, dummy, position3_binaryPositions, 'x'), 1.0)
+            // Set the position of the dummy object to the binary position
+            dummy.position.set(position3_binaryPositions[i][0], position3_binaryPositions[i][1], position3_binaryPositions[i][2]);
 
             // Data Visualization: Stretched out wave, spaced out spheres, almost like a 3d equalizer or something
 
@@ -158,6 +164,8 @@ function RotatingBrain({modelDirectory, containerRef, size}) {
         // Preload the GSAP timeline
         tl.progress(1).progress(0)
 
+        // Updates GSAP timeline to wherever the user is scrolled to
+        handleScroll();
 
         // Add the mesh to the scene
         scene.add(mesh);
@@ -169,17 +177,13 @@ function RotatingBrain({modelDirectory, containerRef, size}) {
         } // Cleanup on component unmount
     }, []); // Empty dependency array to run only once on mount and unmount
 
-    function animateHoverUniform(value) {
-        gsap.to(uniforms, {
-            uHover: value,
-            duration: 0.25,
-            onUpdate: () => {
-                for (let i = 0; i < instancedBrainRef.current.count; i++) {
-                    instancedBrainRef.current.setUniformAt('uHover', i, uniforms.uHover)
-                }
-            }
-        })
-    }
+    useFrame(() => {
+        if (instancedBrainRef.current) {
+            // Rotate x or y axis
+            instancedBrainRef.current.rotation.x = (instancedBrainRef.current.rotation.x + 0.005) * instancedBrainRef.current.userData.rotateFlag.x;
+            instancedBrainRef.current.rotation.y = (instancedBrainRef.current.rotation.y + 0.005) * instancedBrainRef.current.userData.rotateFlag.y;
+        }
+    });
 
     const handleScroll = useCallback(() => {
         const totalScrollHeight = document.documentElement.scrollHeight - window.innerHeight;
@@ -195,7 +199,17 @@ function RotatingBrain({modelDirectory, containerRef, size}) {
         };
     }, [handleScroll]);
 
-
+    function animateHoverUniform(value) {
+        gsap.to(uniforms, {
+            uHover: value,
+            duration: 0.25,
+            onUpdate: () => {
+                for (let i = 0; i < instancedBrainRef.current.count; i++) {
+                    instancedBrainRef.current.setUniformAt('uHover', i, uniforms.uHover)
+                }
+            }
+        })
+    }
 
 // Modify your handleMouseMove function like this
     const handleMouseMove = useCallback((event) => {
@@ -239,19 +253,6 @@ function RotatingBrain({modelDirectory, containerRef, size}) {
             container.removeEventListener('mousemove', handleMouseMove, {passive: true})
         };
     }, []);
-
-
-    useFrame(() => {
-        if (instancedBrainRef.current && instancedBrainRef.current.userData.rotateFlag === 'y') {
-            instancedBrainRef.current.rotation.x = 0;
-            instancedBrainRef.current.rotation.y += 0.002;
-        } else {
-            instancedBrainRef.current.rotation.y = 0;
-            if (instancedBrainRef.current.userData.rotateFlag === 'x') {
-                instancedBrainRef.current.rotation.x += 0.002;
-            }
-        }
-    });
 
     return null;
 }
