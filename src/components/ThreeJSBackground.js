@@ -180,8 +180,8 @@ function RotatingBrain({modelDirectory, containerRef, size}) {
     useFrame(() => {
         if (instancedBrainRef.current) {
             // Rotate x or y axis
-            instancedBrainRef.current.rotation.x = (instancedBrainRef.current.rotation.x + 0.005) * instancedBrainRef.current.userData.rotateFlag.x;
-            instancedBrainRef.current.rotation.y = (instancedBrainRef.current.rotation.y + 0.005) * instancedBrainRef.current.userData.rotateFlag.y;
+            instancedBrainRef.current.rotation.x = (instancedBrainRef.current.rotation.x + 0.002) * instancedBrainRef.current.userData.rotateFlag.x;
+            instancedBrainRef.current.rotation.y = (instancedBrainRef.current.rotation.y + 0.002) * instancedBrainRef.current.userData.rotateFlag.y;
         }
     });
 
