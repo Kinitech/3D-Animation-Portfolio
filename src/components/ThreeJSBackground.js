@@ -35,13 +35,41 @@ function createRotationTween(rotationObject, axis, toValue, onComplete) {
 
     return gsap.to(rotationObject, {
         ...properties,
-        duration: 0.3,  // You can adjust the duration as needed
+        duration: 1.0,  // You can adjust the duration as needed
         ease: "power2.out",
         onComplete: () => {
             onComplete();
         }
     });
 }
+
+function timelineRotate(rotationObject, tl, axisFrom, axisTo, rotateFrom, rotateTo, time) {
+    // Reset y rotation and pause yRotateTween after it's done
+    tl.add(() => {
+        createRotationTween(rotationObject,
+            axisFrom,
+            0,
+            () => {
+                rotateFrom.pause()
+                rotateTo.restart()
+                rotateTo.play()
+            })
+    }, time)
+
+    // Reset x rotation and pause xRotateTween after it's done
+    tl.add(() => {
+        createRotationTween(rotationObject,
+            axisTo,
+            0,
+            () => {
+                rotateTo.pause()
+                rotateFrom.restart()
+                rotateFrom.play()
+            })
+    }, time - 0.00001);
+
+}
+
 
 function initialiseSphere(i, mesh, dummy, initialPosition) {
 
@@ -58,6 +86,23 @@ function initialiseSphere(i, mesh, dummy, initialPosition) {
     // Set the sphere matrix to the matrix of the dummy object
     mesh.setMatrixAt(i, dummy.matrix)
 
+}
+
+function calculateHalfBrainPosition(brainPosition) {
+    if (brainPosition[2] < 0) {
+        brainPosition[2] = 0;
+    }
+    return brainPosition;
+}
+
+function calculateBinaryPosition(i, numberOfColumns, thetaSpacing, ySpacing, cylinderRadius) {
+    const column = i % numberOfColumns;
+    const row = Math.floor(i / numberOfColumns);
+    const theta = column * thetaSpacing;
+    const y = cylinderRadius * Math.cos(theta);
+    const x = row * ySpacing;
+    const z = cylinderRadius * Math.sin(theta);
+    return [x - 0.7, y, z];
 }
 
 
@@ -104,10 +149,11 @@ function RotatingBrain({modelDirectory, containerRef, size}) {
 
         const mesh = new InstancedUniformsMesh(geometry, material, brain.geometry.attributes.position.count);
 
-        // Store the initial random/actual positions for each instance
-        const position1_randomPositions = [];
-        const position2_brainPositions = [];
-        const position3_binaryPositions = [];
+        // Store the initial positions for each transition position
+        const position2_neuroPositions = [];
+        const position3_codePositions = [];
+        const position4_mlPositions = [];
+        const position5_dataPositions = [];
 
         // Position 3 Variables
 
@@ -121,46 +167,42 @@ function RotatingBrain({modelDirectory, containerRef, size}) {
             const dummy = new Object3D()
 
             // - Position 1 : Store the initial random positions for each instance
-            const randomPosition = [
-                (Math.random() - 0.5),
-                (Math.random() - 0.5),
-                (Math.random() - 0.5),
-            ];
-            position1_randomPositions.push([...randomPosition]);
-
-            // - Position 2 : Store the brain positions for each instance
-            const brainPositions = brain.geometry.attributes.position.array.slice(i * 3, (i * 3) + 3);
-            position2_brainPositions.push([...brainPositions]);
-
-            // - Position 3 : Store the binary positions for each instance
-            const column = i % numberOfColumns;
-            const row = Math.floor(i / numberOfColumns);
-            const theta = column * thetaSpacing;
-            const y = cylinderRadius * Math.cos(theta);
-
-            const x = row * ySpacing;
-            const z = cylinderRadius * Math.sin(theta);
-
-            position3_binaryPositions.push([x - 0.7, y, z]);
-
+            const randomPosition = [(Math.random() - 0.5), (Math.random() - 0.5), (Math.random() - 0.5),];
             // - Setting up initial state of the mesh
             initialiseSphere(i, mesh, dummy, randomPosition)
 
-            // Set the color of the sphere
+            // - Position 2 : Store the brain positions for each instance
+            const brainPosition = brain.geometry.attributes.position.array.slice(i * 3, (i * 3) + 3);
+            position2_neuroPositions.push([...brainPosition]);
+
+            // - Position 3 : Store the binary positions for each instance
+            const binaryPosition = calculateBinaryPosition(i, numberOfColumns, thetaSpacing, ySpacing, cylinderRadius);
+            position3_codePositions.push([...binaryPosition]);
+
+            // - Position 4 : Store the half brain positions for each instance
+            const halfBrainPosition = calculateHalfBrainPosition(brainPosition);
+            position4_mlPositions.push([...halfBrainPosition]);
+
+            // Set the color of the spheres
             const colorIndex = Math.floor( Math.random() * colors.length);
             mesh.setUniformAt('uColor', i , colors[colorIndex])
 
             // - Create tweens for each sphere
 
             // Random position -> Brain position
-            tl.add(createTween(i, mesh, dummy, position2_brainPositions, 'y'), 0.0)
+            tl.add(createTween(i, mesh, dummy, position2_neuroPositions, 'y'), 0.0)
             // Set the position of the dummy object to the brain position
-            dummy.position.set(position2_brainPositions[i][0], position2_brainPositions[i][1], position2_brainPositions[i][2]);
+            dummy.position.set(position2_neuroPositions[i][0], position2_neuroPositions[i][1], position2_neuroPositions[i][2]);
 
             // Brain position -> Binary position
-            tl.add(createTween(i, mesh, dummy, position3_binaryPositions, 'x'), 1.0)
+            tl.add(createTween(i, mesh, dummy, position3_codePositions, 'x'), 1.0)
             // Set the position of the dummy object to the binary position
-            dummy.position.set(position3_binaryPositions[i][0], position3_binaryPositions[i][1], position3_binaryPositions[i][2]);
+            dummy.position.set(position3_codePositions[i][0], position3_codePositions[i][1], position3_codePositions[i][2]);
+
+            // Binary position -> Half brain position
+            tl.add(createTween(i, mesh, dummy, position4_mlPositions, 'y'), 2.0)
+            // Set the position of the dummy object to the half brain position
+            dummy.position.set(position4_mlPositions[i][0], position4_mlPositions[i][1], position4_mlPositions[i][2]);
 
             // Data Visualization: Stretched out wave, spaced out spheres, almost like a 3d equalizer or something
 
@@ -188,30 +230,21 @@ function RotatingBrain({modelDirectory, containerRef, size}) {
             paused: true,    // Pause the tween until the yRotateTween is done
         });
 
-        // Reset y rotation and pause yRotateTween after it's done
-        tl.add(() => {
-                createRotationTween(instancedBrainRef.current.rotation,
-                    'y',
-                    0,
-                    () => {
-                        yRotateTween.pause()
-                        xRotateTween.restart()
-                        xRotateTween.play()
-                    }
-                )
-        }, 1)  // This happens right after the yRotateTween finishes
-
-            // Reset x rotation and pause xRotateTween after it's done
-        tl.add(() => {
-                createRotationTween(instancedBrainRef.current.rotation,
-                    'x',
-                    0,
-                    () => {
-                        xRotateTween.pause()
-                        yRotateTween.restart()
-                        yRotateTween.play()
-                })
-        }, 0.9999);  // This happens right after the xRotateTween finishes
+        // Timeline rotation
+        timelineRotate(instancedBrainRef.current.rotation, tl,
+            'y',
+            'x',
+            yRotateTween,
+            xRotateTween,
+            1.65
+        )
+        timelineRotate(instancedBrainRef.current.rotation, tl,
+            'x',
+            'y',
+            xRotateTween,
+            yRotateTween,
+            2.65
+        )
 
         // Preload the GSAP timeline
         tl.progress(1).progress(0)
