@@ -7,17 +7,10 @@ import {InstancedUniformsMesh} from 'three-instanced-uniforms-mesh'
 import {gsap} from 'gsap'
 import {throttle} from "lodash";
 
-function createTween(i, mesh, dummy, targetPositions, rotationAxis) {
+function createTween(i, mesh, dummy, targetPositions) {
     const currentPosition = [dummy.position.x, dummy.position.y, dummy.position.z];
     const targetPosition = targetPositions[i];
 
-    function updateRotation() {
-        if (rotationAxis === 'x') {
-            mesh.userData.rotateFlag = {x: 1, y: 0}
-        } else {
-            mesh.userData.rotateFlag = {x: 0, y: 1}
-        }
-    }
 
     return gsap.fromTo(dummy.position, {
         x: currentPosition[0],
@@ -29,10 +22,23 @@ function createTween(i, mesh, dummy, targetPositions, rotationAxis) {
         z: targetPosition[2],
         duration: 1.0,
         onUpdate: () => {
-            updateRotation();
             dummy.updateMatrix();
             mesh.setMatrixAt(i, dummy.matrix);
             mesh.instanceMatrix.needsUpdate = true;
+        }
+    });
+}
+
+function createRotationTween(rotationObject, axis, toValue, onComplete) {
+    const properties = {};
+    properties[axis] = toValue;
+
+    return gsap.to(rotationObject, {
+        ...properties,
+        duration: 0.3,  // You can adjust the duration as needed
+        ease: "power2.out",
+        onComplete: () => {
+            onComplete();
         }
     });
 }
@@ -97,7 +103,6 @@ function RotatingBrain({modelDirectory, containerRef, size}) {
         });
 
         const mesh = new InstancedUniformsMesh(geometry, material, brain.geometry.attributes.position.count);
-        mesh.userData.rotateFlag = {x: 0, y: 1}
 
         // Store the initial random/actual positions for each instance
         const position1_randomPositions = [];
@@ -161,29 +166,67 @@ function RotatingBrain({modelDirectory, containerRef, size}) {
 
         }
 
+        // Add the mesh to the scene
+        scene.add(mesh);
+        // Set the reference to mesh
+        instancedBrainRef.current = mesh;  // Set the reference to mesh
+
+        // Y-Axis rotation during "Random position -> Brain position"
+        const yRotateTween = gsap.to(instancedBrainRef.current.rotation, {
+            y: "+=6.28319",  // This adds a full rotation in radians (360 degrees) on the y-axis
+            repeat: -1,      // Repeat indefinitely
+            duration: 20,     // Duration of one complete rotation;
+            ease: "none",    // Linear rotation without any easing
+        });
+
+        // X-Axis rotation during "Brain position -> Binary position"
+        const xRotateTween = gsap.to(instancedBrainRef.current.rotation, {
+            x: "+=6.28319",  // This adds a full rotation in radians (360 degrees) on the x-axis
+            repeat: -1,      // Repeat indefinitely
+            duration: 20,     // Duration of one complete rotation;
+            ease: "none",    // Linear rotation without any easing
+            paused: true,    // Pause the tween until the yRotateTween is done
+        });
+
+        // Reset y rotation and pause yRotateTween after it's done
+        tl.add(() => {
+                createRotationTween(instancedBrainRef.current.rotation,
+                    'y',
+                    0,
+                    () => {
+                        yRotateTween.pause()
+                        xRotateTween.restart()
+                        xRotateTween.play()
+                    }
+                )
+        }, 1)  // This happens right after the yRotateTween finishes
+
+            // Reset x rotation and pause xRotateTween after it's done
+        tl.add(() => {
+                createRotationTween(instancedBrainRef.current.rotation,
+                    'x',
+                    0,
+                    () => {
+                        xRotateTween.pause()
+                        yRotateTween.restart()
+                        yRotateTween.play()
+                })
+        }, 0.9999);  // This happens right after the xRotateTween finishes
+
         // Preload the GSAP timeline
         tl.progress(1).progress(0)
 
         // Updates GSAP timeline to wherever the user is scrolled to
         handleScroll();
 
-        // Add the mesh to the scene
-        scene.add(mesh);
-        // Set the reference to mesh
-        instancedBrainRef.current = mesh;  // Set the reference to mesh
-
+        // Cleanup
         return () => {
             scene.remove(mesh);
-        } // Cleanup on component unmount
+            tl.kill();
+            yRotateTween.kill();
+            xRotateTween.kill();
+        };
     }, []); // Empty dependency array to run only once on mount and unmount
-
-    useFrame(() => {
-        if (instancedBrainRef.current) {
-            // Rotate x or y axis
-            instancedBrainRef.current.rotation.x = (instancedBrainRef.current.rotation.x + 0.002) * instancedBrainRef.current.userData.rotateFlag.x;
-            instancedBrainRef.current.rotation.y = (instancedBrainRef.current.rotation.y + 0.002) * instancedBrainRef.current.userData.rotateFlag.y;
-        }
-    });
 
     const handleScroll = useCallback(() => {
         const totalScrollHeight = document.documentElement.scrollHeight - window.innerHeight;
