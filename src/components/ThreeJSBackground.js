@@ -36,7 +36,7 @@ function createRotationTween(rotationObject, axis, toValue, onComplete) {
     return gsap.to(rotationObject, {
         ...properties,
         duration: 1.0,  // You can adjust the duration as needed
-        ease: "power2.out",
+        ease: "sine.inOut",
         onComplete: () => {
             onComplete();
         }
@@ -70,9 +70,7 @@ function timelineRotate(rotationObject, tl, axisFrom, axisTo, rotateFrom, rotate
 
 }
 
-
 function initialiseSphere(i, mesh, dummy, initialPosition) {
-
     // Set the random position of the dummy object
     dummy.position.set(initialPosition[0], initialPosition[1], initialPosition[2]);
     // Set the scale of the dummy object
@@ -85,15 +83,27 @@ function initialiseSphere(i, mesh, dummy, initialPosition) {
     dummy.updateMatrix()
     // Set the sphere matrix to the matrix of the dummy object
     mesh.setMatrixAt(i, dummy.matrix)
-
 }
 
-function calculateHalfBrainPosition(brainPosition) {
-    if (brainPosition[2] < 0) {
-        brainPosition[2] = 0;
-    }
-    return brainPosition;
+function calculateSpherePosition(i, numSpheres) {
+    // This assumes that you want to position `numSpheres` spheres on a larger sphere
+
+    const scale = 0.8;
+    const goldenRatio = (1 + Math.sqrt(5)) / 2;
+
+    // Calculate the inclination and azimuth for even distribution of points on a sphere
+    const y = 1 - (i / (numSpheres - 1)) * 2; // y goes from 1 to -1
+    const radius = Math.sqrt(1 - y * y); // radius at y position
+
+    const phi = 2 * Math.PI * i / goldenRatio; // golden ratio distributes points evenly on a circle
+
+    // Convert spherical coordinates to Cartesian coordinates
+    const x = Math.cos(phi) * radius;
+    const z = Math.sin(phi) * radius;
+
+    return [x * scale, y * scale, z * scale];
 }
+
 
 function calculateBinaryPosition(i, numberOfColumns, thetaSpacing, ySpacing, cylinderRadius) {
     const column = i % numberOfColumns;
@@ -180,8 +190,8 @@ function RotatingBrain({modelDirectory, containerRef, size}) {
             position3_codePositions.push([...binaryPosition]);
 
             // - Position 4 : Store the half brain positions for each instance
-            const halfBrainPosition = calculateHalfBrainPosition(brainPosition);
-            position4_mlPositions.push([...halfBrainPosition]);
+            const spherePosition = calculateSpherePosition(i, mesh.count);
+            position4_mlPositions.push([...spherePosition]);
 
             // Set the color of the spheres
             const colorIndex = Math.floor( Math.random() * colors.length);
@@ -236,7 +246,7 @@ function RotatingBrain({modelDirectory, containerRef, size}) {
             'x',
             yRotateTween,
             xRotateTween,
-            1.65
+            1.1
         )
         timelineRotate(instancedBrainRef.current.rotation, tl,
             'x',
@@ -265,6 +275,7 @@ function RotatingBrain({modelDirectory, containerRef, size}) {
         const totalScrollHeight = document.documentElement.scrollHeight - window.innerHeight;
         const scrolled = window.scrollY;
         tl.progress((scrolled / totalScrollHeight));
+
     }, []);
 
     useEffect(() => {
@@ -322,11 +333,11 @@ function RotatingBrain({modelDirectory, containerRef, size}) {
 
     useEffect(() => {
         const container = containerRef.current;
-        container.addEventListener('mousemove', handleMouseMove, {passive: true});
+        document.addEventListener('mousemove', handleMouseMove, {passive: true});
 
         // Cleanup
         return () => {
-            container.removeEventListener('mousemove', handleMouseMove, {passive: true})
+            document.removeEventListener('mousemove', handleMouseMove, {passive: true})
         };
     }, []);
 
@@ -356,7 +367,7 @@ function ThreeJSBackground() {
     };
 
     return (
-        <div ref={containerRef} className="threejs-background">
+        <div ref={containerRef} className="threejs-background" style={{willChange:"contents"}}>
             <Canvas camera={{position: [0, 0, 1.2], fov: 75, near: 0.1, far: 100}}>
                 <ambientLight intensity={0.5} />
                 <directionalLight position={[0, 10, 5]} />
