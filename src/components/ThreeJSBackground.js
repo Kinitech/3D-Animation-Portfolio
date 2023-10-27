@@ -151,7 +151,7 @@ function RotatingBrain({modelDirectory, containerRef, size}) {
     const gltf = useLoader(GLTFLoader, modelDirectory);
     const brain = gltf.scene.children[0];
 
-    const [uniforms, setUniforms] = useState({uHover: 0});
+    const [uniforms] = useState({uHover: 0});
 
     const {scene } = useThree();
     const [isHovered, setIsHovered] = useState(false);
@@ -169,7 +169,7 @@ function RotatingBrain({modelDirectory, containerRef, size}) {
         if (instancedBrainRef.current) {
             instancedBrainRef.current.scale.set(size, size, size);
         }
-    }, [instancedBrainRef.current, size]);
+    }, [size]);
 
     useEffect(() => {
         const geometry = new SphereGeometry(0.002, 1, 1)
@@ -263,6 +263,8 @@ function RotatingBrain({modelDirectory, containerRef, size}) {
         scene.add(mesh);
         // Set the reference to mesh
         instancedBrainRef.current = mesh;  // Set the reference to mesh
+        // Set the scale of the mesh on mount
+        instancedBrainRef.current.scale.set(size, size, size);
 
         // Y-Axis rotation during "Random position -> Brain position"
         const yRotateTween = gsap.to(instancedBrainRef.current.rotation, {
@@ -383,7 +385,6 @@ function RotatingBrain({modelDirectory, containerRef, size}) {
         const totalScrollHeight = document.documentElement.scrollHeight - window.innerHeight;
         const scrolled = window.scrollY;
         tl.progress((scrolled / totalScrollHeight));
-
     }, []);
 
     useEffect(() => {
