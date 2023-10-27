@@ -144,7 +144,7 @@ function calculateCircularPlanePosition(i, maxRings, radius) {
 
     const y = 0;
 
-    return new Vector3(x, y , z );
+    return new Vector3(x, y - 0.5, z - 1.9);
 }
 
 function calculateCubePosition(i, edgeLength, numPointsPerEdge) {
