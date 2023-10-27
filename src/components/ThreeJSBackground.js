@@ -1,8 +1,8 @@
 import './ThreeJSBackground.css';
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
-import {Canvas, useFrame, useLoader, useThree} from 'react-three-fiber';
+import {Canvas, useLoader, useThree} from 'react-three-fiber';
 import {GLTFLoader} from 'three/examples/jsm/loaders/GLTFLoader';
-import {Color, Euler, Object3D, Quaternion, ShaderMaterial, SphereGeometry, Vector3} from "three";
+import {Color, Object3D, ShaderMaterial, SphereGeometry, Vector3} from "three";
 import {InstancedUniformsMesh} from 'three-instanced-uniforms-mesh'
 import {gsap} from 'gsap'
 import {throttle} from "lodash";
@@ -10,7 +10,6 @@ import {throttle} from "lodash";
 function createTween(i, mesh, dummy, targetPositions) {
     const currentPosition = [dummy.position.x, dummy.position.y, dummy.position.z];
     const targetPosition = targetPositions[i];
-
 
     return gsap.fromTo(dummy.position, {
         x: currentPosition[0],
@@ -117,19 +116,33 @@ function calculateSpherePosition(i, numSpheres) {
     return [x * scale, y * scale, z * scale];
 }
 
-function calculatePlanePosition(i, columns, rows, spacing) {
-    // Determine the column and row of the current sphere
-    const column = i % columns;
-    const row = Math.floor(i / columns);
+function calculateCircularPlanePosition(i, maxRings, radius) {
+    let totalPoints = 0;
+    let ring = 0;
+    let pointsOnThisRing = 0;
 
-    // Determine x and z position based on column and row multiplied by spacing
-    const z = (column - columns / 2) * spacing; // this centers the grid
-    const x = (row - rows / 2) * spacing;       // this centers the grid
+    // Calculate which ring the point should be on
+    for (let r = 1; r <= maxRings; r++) {
+        const pointsOnRing = Math.floor(2 * Math.PI * r);
+        if (i < totalPoints + pointsOnRing) {
+            ring = r;
+            pointsOnThisRing = pointsOnRing;
+            break;
+        }
+        totalPoints += pointsOnRing;
+    }
+
+    const angleIncrement = 2 * Math.PI / pointsOnThisRing;
+    const angle = (i - totalPoints) * angleIncrement;
+    const x = ring * (radius / maxRings) * Math.cos(angle);
+    const z = ring * (radius / maxRings) * Math.sin(angle);
 
     const y = 0;
 
-    return [x + 8.65, y - 0.5, z - 5];
+    return [x, y - 0.5, z - 1.9];
 }
+
+
 
 
 function RotatingBrain({modelDirectory, containerRef, size}) {
@@ -213,7 +226,7 @@ function RotatingBrain({modelDirectory, containerRef, size}) {
             position4_mlPositions.push([...spherePosition]);
 
             // - Position 5 : Store the data positions for each instance
-            const dataPosition = calculatePlanePosition(i, 100, 200, 0.1);
+            const dataPosition = calculateCircularPlanePosition(i, 40, 3);
             position5_dataPositions.push([...dataPosition]);
 
             // Set the color of the spheres
@@ -340,13 +353,15 @@ function RotatingBrain({modelDirectory, containerRef, size}) {
             null,
             3.65
         )
-        timelineTransition(instancedBrainRef.current, tl,
-            {},
-            {},
-            null,
-            waveTween,
-            3.651
-        )
+
+//            timelineTransition(instancedBrainRef.current, tl,
+  //              {},
+    //            {},
+      //          null,
+        //        waveTween,
+          //      3.65
+            //)
+
 
         // Preload the GSAP timeline
         tl.progress(1).progress(0)

@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Carousel } from './Carousel';
 import { motion } from "framer-motion"
 import Tilt from 'react-parallax-tilt';
