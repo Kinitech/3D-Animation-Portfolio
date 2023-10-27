@@ -74,7 +74,7 @@ function timelineTransition(mesh, tl, propertiesFrom, propertiesTo, rotateFrom, 
 
 function initialiseSphere(i, mesh, dummy, initialPosition) {
     // Set the random position of the dummy object
-    dummy.position.set(initialPosition[0], initialPosition[1], initialPosition[2]);
+    dummy.position.set(initialPosition.x, initialPosition.y, initialPosition.z);
     // Set the scale of the dummy object
     const scale = 5 * Math.random() + 6;
     dummy.scale.set(scale, scale, scale);
@@ -87,6 +87,12 @@ function initialiseSphere(i, mesh, dummy, initialPosition) {
     mesh.setMatrixAt(i, dummy.matrix)
 }
 
+function calculateBrainPosition(i, brain) {
+    const brainPosition = brain.geometry.attributes.position.array.slice(i * 3, (i * 3) + 3);
+    const brainScale = 1.20;
+    return [brainPosition[0] * brainScale, brainPosition[1] * brainScale, brainPosition[2] * brainScale];
+}
+
 function calculateBinaryPosition(i, numberOfColumns, thetaSpacing, ySpacing, cylinderRadius) {
     const column = i % numberOfColumns;
     const row = Math.floor(i / numberOfColumns);
@@ -94,17 +100,16 @@ function calculateBinaryPosition(i, numberOfColumns, thetaSpacing, ySpacing, cyl
     const y = cylinderRadius * Math.cos(theta);
     const x = row * ySpacing;
     const z = cylinderRadius * Math.sin(theta);
-    return [x - 0.7, y, z];
+    return new Vector3(x - 0.7, y, z);
 }
 
-function calculateSpherePosition(i, numSpheres) {
+function calculateSpherePosition(i, numPoints, scale) {
     // This assumes that you want to position `numSpheres` spheres on a larger sphere
 
-    const scale = 0.8;
     const goldenRatio = (1 + Math.sqrt(5)) / 2;
 
     // Calculate the inclination and azimuth for even distribution of points on a sphere
-    const y = 1 - (i / (numSpheres - 1)) * 2; // y goes from 1 to -1
+    const y = 1 - (i / (numPoints - 1)) * 2; // y goes from 1 to -1
     const radius = Math.sqrt(1 - y * y); // radius at y position
 
     const phi = 2 * Math.PI * i / goldenRatio; // golden ratio distributes points evenly on a circle
@@ -113,7 +118,7 @@ function calculateSpherePosition(i, numSpheres) {
     const x = Math.cos(phi) * radius;
     const z = Math.sin(phi) * radius;
 
-    return [x * scale, y * scale, z * scale];
+    return new Vector3(x * scale, y * scale, z * scale);
 }
 
 function calculateCircularPlanePosition(i, maxRings, radius) {
@@ -139,8 +144,29 @@ function calculateCircularPlanePosition(i, maxRings, radius) {
 
     const y = 0;
 
-    return [x, y - 0.5, z - 1.9];
+    return new Vector3(x, y , z );
 }
+
+function calculateCubePosition(i, edgeLength, numPointsPerEdge) {
+    // Calculate the spacing between nodes based on the edge length and number of points per edge
+    const spacing = edgeLength / (numPointsPerEdge - 1);
+
+    // Determine the x, y, z position based on the index i
+    const zLayer = Math.floor(i / (numPointsPerEdge * numPointsPerEdge));
+    const remaining = i - zLayer * numPointsPerEdge * numPointsPerEdge;
+    const yRow = Math.floor(remaining / numPointsPerEdge);
+    const xColumn = remaining % numPointsPerEdge;
+
+    const x = xColumn * spacing;
+    const y = yRow * spacing;
+    const z = zLayer * spacing;
+
+    // Center the cube around the origin for better visualization
+    const offset = edgeLength / 2;
+
+    return new Vector3(x - offset, y - offset, z - offset);
+}
+
 
 
 
@@ -201,28 +227,41 @@ function RotatingBrain({modelDirectory, containerRef, size}) {
         const thetaSpacing = (2 * Math.PI) / numberOfColumns;  // Angle spacing for the columns.
         const ySpacing = 0.05;  // Vertical spacing for the rows.
 
-        const dummies = [];
         for (let i = 0; i < mesh.count; i++) {
 
             const dummy = new Object3D()
 
-            // - Position 1 : Store the initial random positions for each instance
-            const randomPosition = [(Math.random() - 0.5), (Math.random() - 0.5), (Math.random() - 0.5),];
-            // - Setting up initial state of the mesh
-            initialiseSphere(i, mesh, dummy, randomPosition)
-            // Add the dummy object to the dummies array
-            dummies.push(dummy);
+            if (i < 14 * 14 * 14) {
+                const cubePosition = calculateCubePosition(i, 1, 14);
+                // Setting up initial state of the mesh
+                initialiseSphere(i, mesh, dummy, cubePosition);
+            } else {
+                let randomAxis = Math.floor(Math.random() * 3); // 0 for x, 1 for y, 2 for z
+                let randomPosition = new Vector3();
+
+                for (let j = 0; j < 3; j++) {
+                    if (j === randomAxis) {
+                        randomPosition.setComponent(j,
+                            (Math.random() < 0.5 ? -1 : 1) * (Math.random() * 0.5 + 0.5)
+                        );
+                    } else {
+                        randomPosition.setComponent(j, Math.random() * 2 - 1);
+                    }
+                }
+
+                initialiseSphere(i, mesh, dummy, randomPosition);
+            }
 
             // - Position 2 : Store the brain positions for each instance
-            const brainPosition = brain.geometry.attributes.position.array.slice(i * 3, (i * 3) + 3);
-            position2_neuroPositions.push([...brainPosition]);
+            const brainPosition = calculateBrainPosition(i, brain);
+            position2_neuroPositions.push(brainPosition);
 
             // - Position 3 : Store the binary positions for each instance
             const binaryPosition = calculateBinaryPosition(i, numberOfColumns, thetaSpacing, ySpacing, cylinderRadius);
             position3_codePositions.push([...binaryPosition]);
 
             // - Position 4 : Store the sphere positions for each instance
-            const spherePosition = calculateSpherePosition(i, mesh.count);
+            const spherePosition = calculateSpherePosition(i, mesh.count, 0.8);
             position4_mlPositions.push([...spherePosition]);
 
             // - Position 5 : Store the data positions for each instance
@@ -233,7 +272,7 @@ function RotatingBrain({modelDirectory, containerRef, size}) {
             const colorIndex = Math.floor( Math.random() * colors.length);
             mesh.setUniformAt('uColor', i , colors[colorIndex])
 
-            // - Create tweens for each sphere
+            // - Create tween for each instance
 
             // Start position -> Neuro position
             tl.add(createTween(i, mesh, dummy, position2_neuroPositions), 0.0)
@@ -283,54 +322,6 @@ function RotatingBrain({modelDirectory, containerRef, size}) {
             paused: true,    // Pause the tween until the yRotateTween is done
         });
 
-        function updateWavePositions(mesh, dummies, basePositions, amplitude, frequency, time) {
-            for (let i = 0; i < mesh.count; i++) {
-                const dummy = dummies[i];
-                const yWave = amplitude * Math.sin(frequency * i + time);
-                const [x, y, z] = basePositions[i];
-                dummy.position.set(x, y + yWave, z);
-                dummy.updateMatrix();
-                mesh.setMatrixAt(i, dummy.matrix);
-            }
-            mesh.instanceMatrix.needsUpdate = true;
-        }
-
-
-        const waveTweenDuration = 20; // 2 seconds for a full wave cycle. Adjust as needed.
-        const waveAmplitude = 5;  // Adjust to change the wave's height
-        const waveFrequency = 0.05; // Adjust to change the wave's frequency
-
-        let currentAmplitude = 0; // Starts at 0, representing no wave.
-
-        const waveTween = gsap.to({}, {
-            duration: waveTweenDuration,
-            repeat: -1,
-            ease: "none",
-            paused: true,
-            onStart: function() {
-                // Create another tween to smoothly increase the wave amplitude.
-                gsap.to({}, {
-                    duration: 1.0,
-                    ease: "sine.inOut",
-                    onUpdate: function() {
-                        currentAmplitude = waveAmplitude * this.progress();
-                    }
-                });
-            },
-            onUpdate: function() {
-                updateWavePositions(
-                    instancedBrainRef.current,
-                    dummies,
-                    position5_dataPositions,
-                    currentAmplitude,
-                    waveFrequency,
-                    waveTweenDuration * 2 * Math.PI * this.progress()
-                );
-            },
-        });
-
-
-
         // Change from y-axis rotation to x-axis rotation at 1.1 seconds
         timelineTransition(instancedBrainRef.current.rotation, tl,
             {'y': 0},
@@ -356,15 +347,6 @@ function RotatingBrain({modelDirectory, containerRef, size}) {
             3.65
         )
 
-//            timelineTransition(instancedBrainRef.current, tl,
-  //              {},
-    //            {},
-      //          null,
-        //        waveTween,
-          //      3.65
-            //)
-
-
         // Preload the GSAP timeline
         tl.progress(1).progress(0)
 
@@ -377,7 +359,6 @@ function RotatingBrain({modelDirectory, containerRef, size}) {
             tl.kill();
             yRotateTween.kill();
             xRotateTween.kill();
-            waveTween.kill();
         };
     }, []); // Empty dependency array to run only once on mount and unmount
 
