@@ -1,6 +1,6 @@
 import './ThreeJSBackground.css';
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
-import {Canvas, useLoader, useThree} from 'react-three-fiber';
+import {Canvas, useLoader, useThree} from '@react-three/fiber';
 import {GLTFLoader} from 'three/examples/jsm/loaders/GLTFLoader';
 import {Color, Object3D, ShaderMaterial, SphereGeometry, Vector3} from "three";
 import {InstancedUniformsMesh} from 'three-instanced-uniforms-mesh'
@@ -476,7 +476,7 @@ function ThreeJSBackground() {
 
     return (
         <div ref={containerRef} className="threejs-background" style={{willChange:"contents"}}>
-            <Canvas camera={{position: [0, 0, 1.2], fov: 75, near: 0.1, far: 100}}>
+            <Canvas dpr={window.devicePixelRatio} camera={{position: [0, 0, 1.2], fov: 75, near: 0.1, far: 100}}>
                 <ambientLight intensity={0.5} />
                 <directionalLight position={[0, 10, 5]} />
                 <RotatingBrain modelDirectory={'/static/brain.glb'} containerRef={containerRef} size={size}/>
