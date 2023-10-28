@@ -7,7 +7,7 @@ import {InstancedUniformsMesh} from 'three-instanced-uniforms-mesh'
 import {gsap} from 'gsap'
 import {throttle} from "lodash";
 
-function createTween(i, mesh, dummy, targetPosition) {
+function createTween(i, mesh, dummy, targetPosition, paused=false) {
     return gsap.fromTo(dummy.position, {
         x: dummy.position.x,
         y: dummy.position.y,
@@ -17,6 +17,7 @@ function createTween(i, mesh, dummy, targetPosition) {
         y: targetPosition.y,
         z: targetPosition.z,
         duration: 1.0,
+        paused: paused,
         onUpdate: () => {
             dummy.updateMatrix();
             mesh.setMatrixAt(i, dummy.matrix);
@@ -36,18 +37,18 @@ function createTransitionTween(mesh, properties, onComplete) {
     });
 }
 
-function timelineTransition(mesh, tl, propertiesFrom, propertiesTo, rotateFrom, rotateTo, time) {
+function timelineTransition(mesh, tl, propertiesFrom, propertiesTo, tweenFrom, tweenTo, time) {
     // Reset y rotation and pause yRotateTween after it's done
     tl.add(() => {
         createTransitionTween(mesh,
             propertiesFrom,
             () => {
-                if (rotateFrom) {
-                    rotateFrom.pause()
+                if (tweenFrom) {
+                    tweenFrom.pause()
                 }
-                if (rotateTo) {
-                    rotateTo.restart()
-                    rotateTo.play()
+                if (tweenTo) {
+                    tweenTo.restart()
+                    tweenTo.play()
                 }
             })
     }, time)
@@ -57,12 +58,12 @@ function timelineTransition(mesh, tl, propertiesFrom, propertiesTo, rotateFrom, 
         createTransitionTween(mesh,
             propertiesTo,
             () => {
-                if (rotateTo) {
-                rotateTo.pause()
+                if (tweenTo) {
+                    tweenTo.pause()
                 }
-                if (rotateFrom) {
-                    rotateFrom.restart()
-                    rotateFrom.play()
+                if (tweenFrom) {
+                    tweenFrom.restart()
+                    tweenFrom.play()
                 }
             })
     }, time - 0.00001);
@@ -158,25 +159,26 @@ function calculateCircularPlanePosition(i, maxRings, radius) {
     return new Vector3(x, y - 0.5, z - 1.9);
 }
 
-function calculateGradientYOffset(point, randomPoint, maxOffset, falloff) {
-    const dx = point.x - randomPoint.x;
-    const dz = point.z - randomPoint.z;
+/*
+function calculateGradientYOffset(point, centerPoint, maxRise, radius) {
+    const dx = point.x - centerPoint.x;
+    const dz = point.z - centerPoint.z;
     const distance = Math.sqrt(dx * dx + dz * dz);
 
-    // This is a simple inverse distance function, you can modify as needed
-    const yOffset = maxOffset / (1 + falloff * distance);
+    // This is the parabolic function to create a dome shape
+    const yOffset = maxRise * (1 - (distance / radius) ** 2);
 
-    return yOffset;
+    return yOffset > 0 ? yOffset : 0; // Ensure it doesn't go negative
 }
 
-function calculateCircularPlanePositionWithGradient(point, randomPoint) {
+function calculateGradient(point, randomPoint) {
 
-    const yOffset = calculateGradientYOffset(point, randomPoint, 1 /* maxOffset */, 0.1 /* falloff */);
+    const yOffset = calculateGradientYOffset(point, randomPoint, 0.5, 1);
     point.y += yOffset;
 
     return point;
 }
-
+*/
 
 function setDummy(dummy, position) {
     dummy.position.set(position.x, position.y, position.z);
@@ -246,7 +248,8 @@ function RotatingBrain({modelDirectory, containerRef, size}) {
         const position3_codePositions = [];
         const position4_mlPositions = [];
         const position5_dataPositions = [];
-        const position5_animationTweens = [];
+        const animationTweens = [];
+        const position5_tweensArray = [];
 
         // Position 3 Variables
 
@@ -254,6 +257,13 @@ function RotatingBrain({modelDirectory, containerRef, size}) {
         const cylinderRadius = 0.5;  // You can adjust this to increase or decrease the cylinder's radius.
         const thetaSpacing = (2 * Math.PI) / numberOfColumns;  // Angle spacing for the columns.
         const ySpacing = 0.05;  // Vertical spacing for the rows.
+
+        const randomX = []
+        const randomZ = []
+        for (let i = 0; i < 3; i++) {
+            randomX.push((Math.random() < 0.5 ? -1 : 1) * Math.random() * 0.5)
+            randomZ.push((Math.random() < 0.5 ? -1 : 1) * Math.random() * 0.5 - 1.9)
+        }
 
         for (let i = 0; i < mesh.count; i++) {
 
@@ -338,6 +348,40 @@ function RotatingBrain({modelDirectory, containerRef, size}) {
             paused: true,    // Pause the tween until the yRotateTween is done
         });
 
+        let frequency = 2;
+        let amplitude = 0.5;
+        let waveSpeed = 1.0;
+
+        const updateRippleEffect = () => {
+            const timeElapsed = (performance.now() / 1000);
+
+            for (let i = 0; i < instancedBrainRef.current.count; i++) {
+                const dummy = new Object3D()
+                instancedBrainRef.current.getMatrixAt(i, dummy.matrix);
+                const position = new Vector3().setFromMatrixPosition(dummy.matrix);
+
+                // Calculate a sine wave based on the position of the instance
+                const yOffset = Math.sin(position.x * frequency + timeElapsed * waveSpeed) * amplitude;
+
+                position.y += yOffset;
+                dummy.matrix.setPosition(position);
+                instancedBrainRef.current.setMatrixAt(i, dummy.matrix);
+            }
+
+            instancedBrainRef.current.instanceMatrix.needsUpdate = true;
+        };
+
+
+        const newTween = gsap.to(instancedBrainRef.current, {
+            duration: 5, // Adjust this for the ripple effect's duration
+            repeat: -1, // Keep the ripple effect repeating indefinitely
+            yoyo: true, // Make the animation play forwards and then backwards, creating a seamless loop
+            ease: "sine.inOut", // A sine-based ease will make the ripple more water-like
+            onUpdate: function() {
+                updateRippleEffect()
+            }
+        });
+
         // Change from y-axis rotation to x-axis rotation at 1.1 seconds
         timelineTransition(instancedBrainRef.current.rotation, tl,
             {'y': 0},
@@ -362,15 +406,13 @@ function RotatingBrain({modelDirectory, containerRef, size}) {
             null,
             3.65
         )
-        //for (let i = 0; i < 5; i++) {
-          //  timelineTransition(instancedBrainRef.current.position, tl,
-            //    {},
-              //  {},
-                //null,
-        //        position5_animationTweens[i],
-          //      3.8 + i * 0.2
-            //);
-        //}
+        timelineTransition(instancedBrainRef.current.position, tl,
+            {'y': 0},
+            {'y': 0},
+            null,
+            newTween,
+            3.8
+        )
 
         // Preload the GSAP timeline
         tl.progress(1).progress(0)
