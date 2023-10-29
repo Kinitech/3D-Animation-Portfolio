@@ -1,0 +1,14 @@
+.square-overlay {
+    position: absolute;
+    top: 48vh;
+    left: 50%;
+    width: 90vw;
+    height: 90vw;
+    max-height: 60vh;
+    max-width: 90vh;
+    background-color: transparent;
+    border-right: 1px white solid;
+    border-left: 1px white solid;
+    border-radius: 50px;
+    transform: translate(-50%, -50%);
+}

@@ -43,7 +43,7 @@ body {
 }
 
 .code-text {
-  font-family: monospace;
+  font-family: "Century Gothic", CenturyGothic, Geneva, AppleGothic, sans-serif;
   position: absolute;
 }
 
@@ -52,54 +52,6 @@ body {
   font-size: 15px;
   padding-bottom: 5em;
   margin: 2em 2em 2em 0;
-}
-
-.focus-circle {
-  text-align: center;
-  width: 150px;
-  height: 150px;
-  margin-left: 20px;
-  border-radius: 50%;
-  font-size: 1em;
-  z-index: 10;
-  transition: transform 1s ease-in-out, background-color 0.5s ease-in-out;
-  background-color: rgba(0,0,0,0.3);
-  transform: scale(1);
-}
-
-.description-item:hover .focus-circle {
-  font-size: 1.1em;
-  background-color: var(--focus-color);
-}
-
-.description-column {
-  margin: 100vh 0 0 0;
-  font-family: Arial, sans-serif;
-  color: aliceblue;
-}
-
-.description-item {
-  margin-bottom: 50vh;
-  position: relative;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  background-color: rgba(100, 100, 100, 0.1);
-  padding: 1em;
-  border-radius: 10px;
-}
-
-
-
-.description-text {
-  flex: 1;
-}
-
-
-.carousel {
-  user-select: none;
-  z-index: 9;
-  margin-top: 25%;
 }
 
 .page {

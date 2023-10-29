@@ -359,10 +359,9 @@ function RotatingBrain({modelDirectory, containerRef, size}) {
                 const dummy = new Object3D()
                 instancedBrainRef.current.getMatrixAt(i, dummy.matrix);
                 const position = new Vector3().setFromMatrixPosition(dummy.matrix);
-
+                initialiseSphere(i, mesh, dummy, position)
                 // Calculate a sine wave based on the position of the instance
                 const yOffset = Math.sin(position.x * frequency + timeElapsed * waveSpeed) * amplitude;
-
                 position.y += yOffset;
                 dummy.matrix.setPosition(position);
                 instancedBrainRef.current.setMatrixAt(i, dummy.matrix);
@@ -373,6 +372,7 @@ function RotatingBrain({modelDirectory, containerRef, size}) {
 
 
         const newTween = gsap.to(instancedBrainRef.current, {
+            paused:true,
             duration: 5, // Adjust this for the ripple effect's duration
             repeat: -1, // Keep the ripple effect repeating indefinitely
             yoyo: true, // Make the animation play forwards and then backwards, creating a seamless loop
@@ -405,13 +405,6 @@ function RotatingBrain({modelDirectory, containerRef, size}) {
             yRotateTween,
             null,
             3.65
-        )
-        timelineTransition(instancedBrainRef.current.position, tl,
-            {'y': 0},
-            {'y': 0},
-            null,
-            newTween,
-            3.8
         )
 
         // Preload the GSAP timeline
@@ -512,13 +505,13 @@ function ThreeJSBackground() {
         }
     }, []); // Empty dependency array to run only once on mount and unmount
 
+    const maxSize = 0.75;
     const handleResize = () => {
-        if (window.innerWidth < 500) {
-            setSize(0.6);
-        } else if (window.innerWidth < 800) {
-            setSize(0.8);
+        const newSize = 0.75 * window.innerWidth / 500
+        if (newSize < maxSize) {
+            setSize(newSize);
         } else {
-            setSize(1);
+            setSize(maxSize);
         }
     };
 

@@ -1,4 +1,5 @@
 import SketchBackground from "../components/sketch";
+import './Home.css';
 import Description from "../components/Description";
 import AnimatedText from "../components/AnimatedText";
 import ThreeJSBackground from "../components/ThreeJSBackground";
