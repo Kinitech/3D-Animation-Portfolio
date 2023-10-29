@@ -7,7 +7,7 @@ import {InstancedUniformsMesh} from 'three-instanced-uniforms-mesh'
 import {gsap} from 'gsap'
 import {throttle} from "lodash";
 
-function createTween(i, mesh, dummy, targetPosition, paused=false) {
+function createTween(i, mesh, dummy, targetPosition, duration=1.0, paused=false) {
     return gsap.fromTo(dummy.position, {
         x: dummy.position.x,
         y: dummy.position.y,
@@ -16,7 +16,7 @@ function createTween(i, mesh, dummy, targetPosition, paused=false) {
         x: targetPosition.x,
         y: targetPosition.y,
         z: targetPosition.z,
-        duration: 1.0,
+        duration: duration,
         paused: paused,
         onUpdate: () => {
             dummy.updateMatrix();
@@ -301,22 +301,22 @@ function RotatingBrain({modelDirectory, containerRef, size}) {
             // - Create tween for each instance
 
             // Start position -> Neuro position
-            tl.add(createTween(i, mesh, dummy, position2_neuroPositions[i]), 0.0)
+            tl.add(createTween(i, mesh, dummy, position2_neuroPositions[i], 1.2), 0.0)
             // Set the position of the dummy object to the brain position
             setDummy(dummy, position2_neuroPositions[i]);
 
             // Neuro position -> Code position
-            tl.add(createTween(i, mesh, dummy, position3_codePositions[i]), 1.0)
+            tl.add(createTween(i, mesh, dummy, position3_codePositions[i]), 1.2)
             // Set the position of the dummy object to the binary position
             setDummy(dummy, position3_codePositions[i]);
 
             // Code position -> ML position
-            tl.add(createTween(i, mesh, dummy, position4_mlPositions[i]), 2.0)
+            tl.add(createTween(i, mesh, dummy, position4_mlPositions[i]), 2.2)
             // Set the position of the dummy object to the half brain position
             setDummy(dummy, position4_mlPositions[i]);
 
             // ML position -> Data position
-            tl.add(createTween(i, mesh, dummy, position5_dataPositions[i]), 3.0)
+            tl.add(createTween(i, mesh, dummy, position5_dataPositions[i]), 3.2)
             // Set the position of the dummy object to the data position
             setDummy(dummy, position5_dataPositions[i]);
 
@@ -388,7 +388,7 @@ function RotatingBrain({modelDirectory, containerRef, size}) {
             {'x': 0},
             yRotateTween,
             xRotateTween,
-            1.1
+            1.5
         )
         // Change from x-axis rotation to y-axis rotation at 2.65 seconds
         timelineTransition(instancedBrainRef.current.rotation, tl,
@@ -422,6 +422,11 @@ function RotatingBrain({modelDirectory, containerRef, size}) {
         };
     }, []); // Empty dependency array to run only once on mount and unmount
 
+    // Big document.documentElement.scrollHeight 2723,
+    // window.innerHeight 738,
+    // Total scroll 1985
+
+    // Small 3057, 738, 2319
     const handleScroll = useCallback(() => {
         const totalScrollHeight = document.documentElement.scrollHeight - window.innerHeight;
         const scrolled = window.scrollY;
