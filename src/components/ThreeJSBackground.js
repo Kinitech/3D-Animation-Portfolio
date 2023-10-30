@@ -248,8 +248,6 @@ function RotatingBrain({modelDirectory, containerRef, size}) {
         const position3_codePositions = [];
         const position4_mlPositions = [];
         const position5_dataPositions = [];
-        const animationTweens = [];
-        const position5_tweensArray = [];
 
         // Position 3 Variables
 
@@ -301,22 +299,22 @@ function RotatingBrain({modelDirectory, containerRef, size}) {
             // - Create tween for each instance
 
             // Start position -> Neuro position
-            tl.add(createTween(i, mesh, dummy, position2_neuroPositions[i], 1.2), 0.0)
+            tl.add(createTween(i, mesh, dummy, position2_neuroPositions[i]), 0.0)
             // Set the position of the dummy object to the brain position
             setDummy(dummy, position2_neuroPositions[i]);
 
             // Neuro position -> Code position
-            tl.add(createTween(i, mesh, dummy, position3_codePositions[i]), 1.2)
+            tl.add(createTween(i, mesh, dummy, position3_codePositions[i]), 1.0)
             // Set the position of the dummy object to the binary position
             setDummy(dummy, position3_codePositions[i]);
 
             // Code position -> ML position
-            tl.add(createTween(i, mesh, dummy, position4_mlPositions[i]), 2.2)
+            tl.add(createTween(i, mesh, dummy, position4_mlPositions[i]), 2.0)
             // Set the position of the dummy object to the half brain position
             setDummy(dummy, position4_mlPositions[i]);
 
             // ML position -> Data position
-            tl.add(createTween(i, mesh, dummy, position5_dataPositions[i]), 3.2)
+            tl.add(createTween(i, mesh, dummy, position5_dataPositions[i]), 3.0)
             // Set the position of the dummy object to the data position
             setDummy(dummy, position5_dataPositions[i]);
 

@@ -35,18 +35,18 @@ function Home({page, onFinish, colors, circleRefs}) {
     // Whilst I fiddle with HeroSection
     return (
         <>
+            <div className="header">
+                <h1 className="code-text"> {AnimatedText([
+                    intro + "programmer",
+                    intro + "neuroscientist",
+                    intro + "data enthusiast",
+                    intro + "web developer",
+                    intro + "machine learner",
+                    intro + "data visualiser"])}
+                </h1>
+            </div>
             <div className="container">
                 <ThreeJSBackground/>
-                <div className="header">
-                    <h1 className="code-text"> {AnimatedText([
-                        intro + "programmer",
-                        intro + "neuroscientist",
-                        intro + "data enthusiast",
-                        intro + "web developer",
-                        intro + "machine learner",
-                        intro + "data visualiser"])}
-                    </h1>
-                </div>
                 <Description page={page} colors={colors} descriptions={descriptions} onFinish={onFinish} circleRefs={circleRefs}/>
             </div>
         </>
