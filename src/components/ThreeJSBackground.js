@@ -159,27 +159,6 @@ function calculateCircularPlanePosition(i, maxRings, radius) {
     return new Vector3(x, y - 0.5, z - 1.9);
 }
 
-/*
-function calculateGradientYOffset(point, centerPoint, maxRise, radius) {
-    const dx = point.x - centerPoint.x;
-    const dz = point.z - centerPoint.z;
-    const distance = Math.sqrt(dx * dx + dz * dz);
-
-    // This is the parabolic function to create a dome shape
-    const yOffset = maxRise * (1 - (distance / radius) ** 2);
-
-    return yOffset > 0 ? yOffset : 0; // Ensure it doesn't go negative
-}
-
-function calculateGradient(point, randomPoint) {
-
-    const yOffset = calculateGradientYOffset(point, randomPoint, 0.5, 1);
-    point.y += yOffset;
-
-    return point;
-}
-*/
-
 function setDummy(dummy, position) {
     dummy.position.set(position.x, position.y, position.z);
 }
@@ -391,7 +370,7 @@ function RotatingMesh({modelDirectory, containerRef, size, setLoaded}) {
             {'x': 0},
             yRotateTween,
             null,
-            3.65
+            3.15
         )
 
         // Preload the GSAP timeline

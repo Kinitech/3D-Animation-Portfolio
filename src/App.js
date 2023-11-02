@@ -36,7 +36,7 @@ function App() {
             <Home colors={colors} page={page} onFinish={handleFinishTransition} circleRefs={circleRefs}/>
             {page !== 1 &&
                 <BubblePage i={page} color={color} onBack={handleBack}>
-                    {page === 2 && <Neuro/>}
+                    {page === 2 && <div>Page 2</div>}
                     {page === 3 && <div>Page 3</div>}
                     {page === 4 && <div>Page 4</div>}
                     {page === 5 && <div>Page 5</div>}

@@ -30,7 +30,7 @@ void main() {
     // Interpolate the color based on distance
     vColor = mix(uColor, vec3(0.61, 0.49, 0.96), c * 1.5);
 
-    float scale = uScale + c * 3.0 * uHover;
+    float scale = uScale + c * 1.5 * uHover;
     vec3 pos = position;
     pos *= scale;
     pos.xz *= rotate(PI * c * uRotation + PI * uRotation * 0.43);
