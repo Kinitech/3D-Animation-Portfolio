@@ -84,6 +84,8 @@
     border-top: 2px dotted white;
     top: 100%;
     left:50%;
+    margin-top: 2px;
+    margin-bottom: 2px;
 }
 
 .dotted-line-p2-reverse {
@@ -96,6 +98,9 @@
     top: 100%;
     left: 50%;
     transform : translate(-100%, 0);
+    margin-top: 2px;
+    margin-bottom: 2px;
+    margin-left: 2px;
 }
 
 
