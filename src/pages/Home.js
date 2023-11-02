@@ -1,9 +1,15 @@
-import SketchBackground from "../components/sketch";
 import './Home.css';
 import Description from "../components/Description";
 import AnimatedText from "../components/AnimatedText";
 import ThreeJSBackground from "../components/ThreeJSBackground";
+import {useEffect, useState} from "react";
 
+function LoadingAnimation({fadeOut}) {
+    // Black screen
+    return (
+        <div className={fadeOut ? "loading fade-out" : "loading"}/>
+    )
+}
 
 function Home({page, onFinish, colors, circleRefs}) {
     const descriptions = [
@@ -29,10 +35,20 @@ function Home({page, onFinish, colors, circleRefs}) {
         }
     ];
 
+    const [loaded, setLoaded] = useState(false);
+    const [showLoading, setShowLoading] = useState(true);
+
     const intro = "Hi I'm Byron, a ";
 
-    // CURRENTLY Missing <SketchBackground/> and <div className="dot-pattern"/>
-    // Whilst I fiddle with HeroSection
+    // Delay to remove loading screen
+    useEffect(() => {
+        if (loaded) {
+            setTimeout(() => {
+                setShowLoading(false);
+            }, 1000);  // 1 second matches the CSS transition time
+        }
+    }, [loaded]);
+
     return (
         <>
             <div className="header">
@@ -46,7 +62,8 @@ function Home({page, onFinish, colors, circleRefs}) {
                 </h1>
             </div>
             <div className="container">
-                <ThreeJSBackground/>
+                {showLoading ? <LoadingAnimation fadeOut={loaded}/> : null}
+                <ThreeJSBackground setLoaded={setLoaded}/>
                 <Description page={page} colors={colors} descriptions={descriptions} onFinish={onFinish} circleRefs={circleRefs}/>
             </div>
         </>

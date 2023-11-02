@@ -117,7 +117,7 @@ function Description(props) {
     return (
         <div className="description-column">
             {props.descriptions.map((description, index) => (
-                <DottedLineTrail index={index}>
+                <DottedLineTrail key={index} index={index}>
                     <TiltCard index={index} props={props} description={description} setClickedIndex={setClickedIndex} mobile={mobile}/>
                 </DottedLineTrail>
             ))}

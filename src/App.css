@@ -79,11 +79,6 @@ body {
 
 /* Tablet Styles */
 @media only screen and (max-width: 900px) {
-  .header {
-    font-size: 12px;
-  }
-
-
   .description-item {
     font-size: 15px;
   }
@@ -96,10 +91,6 @@ body {
 
 /* Tablet Styles */
 @media only screen and (max-width: 700px) {
-  .header {
-    font-size: 12px;
-  }
-
   .description-item {
     font-size: 15px;
   }
@@ -112,10 +103,6 @@ body {
 
 /* Mobile Styles */
 @media only screen and (max-width: 660px) {
-  .header {
-    font-size: 10px;
-  }
-
   .description-item {
     font-size: 15px;
     flex-direction: column;
@@ -128,10 +115,6 @@ body {
 
 /* Mobile Styles */
 @media only screen and (max-width: 460px) {
-  .header {
-    font-size: 8px;
-  }
-
   .description-item {
     font-size: 15px;
     flex-direction: column;

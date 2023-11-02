@@ -200,7 +200,7 @@ function calculateRandomPosition() {
     return randomPosition;
 }
 
-function RotatingBrain({modelDirectory, containerRef, size}) {
+function RotatingMesh({modelDirectory, containerRef, size, setLoaded}) {
 
     const instancedBrainRef = useRef();
     const gltf = useLoader(GLTFLoader, modelDirectory);
@@ -400,9 +400,8 @@ function RotatingBrain({modelDirectory, containerRef, size}) {
         // Updates GSAP timeline to wherever the user is scrolled to
         handleScroll();
 
-        console.log("Loaded!")
-        // EDIT THE SIZE ALGORITHM,, IT DOES NOT WORK TO CHANGE SIZE
-        // AT ALL, thx <3
+        // Set loaded to true
+        setLoaded(true);
 
         // Cleanup
         return () => {
@@ -413,11 +412,6 @@ function RotatingBrain({modelDirectory, containerRef, size}) {
         };
     }, []); // Empty dependency array to run only once on mount and unmount
 
-    // Big document.documentElement.scrollHeight 2723,
-    // window.innerHeight 738,
-    // Total scroll 1985
-
-    // Small 3057, 738, 2319
     const handleScroll = useCallback(() => {
         const totalScrollHeight = document.documentElement.scrollHeight - window.innerHeight;
         const scrolled = window.scrollY;
@@ -489,7 +483,7 @@ function RotatingBrain({modelDirectory, containerRef, size}) {
     return null;
 }
 
-function ThreeJSBackground() {
+function ThreeJSBackground({setLoaded}) {
     const containerRef = useRef();
     const [size, setSize] = useState(1.2);
 
@@ -501,9 +495,11 @@ function ThreeJSBackground() {
         }
     }, []); // Empty dependency array to run only once on mount and unmount
 
-    const maxSize = 0.75;
+    const maxSize = 0.9;
+    const minSize = 0.65;
+    const minSizeWidth = 500;
     const handleResize = () => {
-        const newSize = 0.75 * window.innerWidth / 500
+        const newSize = minSize * window.innerWidth / minSizeWidth
         if (newSize < maxSize) {
             setSize(newSize);
         } else {
@@ -516,7 +512,7 @@ function ThreeJSBackground() {
             <Canvas dpr={window.devicePixelRatio} camera={{position: [0, 0, 1.2], fov: 75, near: 0.1, far: 100}}>
                 <ambientLight intensity={0.5} />
                 <directionalLight position={[0, 10, 5]} />
-                <RotatingBrain modelDirectory={'/static/brain.glb'} containerRef={containerRef} size={size}/>
+                <RotatingMesh modelDirectory={'/static/brain.glb'} containerRef={containerRef} size={size} setLoaded={setLoaded}/>
             </Canvas>
         </div>
     );
