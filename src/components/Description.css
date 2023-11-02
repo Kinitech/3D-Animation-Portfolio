@@ -18,13 +18,12 @@
 
 .description-column {
     position: relative;
-    margin: 100vh 0 0 0;
-    font-family: Futura, Avenir, sans-serif;
+    margin: 90vh 0 0 0;
+    font-family: Futura, sans-serif;
     color: aliceblue;
 }
 
 .description-item {
-    margin-bottom: 40vh;
     position: relative;
     display: flex;
     justify-content: space-between;
@@ -48,31 +47,25 @@
     margin-top: 25%;
 }
 
-.dotted-line-p1 {
+.dotted-line {
+    opacity: 0.5;
+    /* Make centered*/
+    margin-left: 50%;
+    transform: translate(-50%, 0);
+}
 
-    pointer-events: none;
-    position: absolute;
+.dotted-line-p1 {
+    position: relative;
     height: 10vh;
     border-left: 2px dotted white;
-    opacity: 0.5;
-    top: 100%;
     left: 50%;
-    margin-left: -1px;
 }
 
-.dotted-line-p1-reverse {
-    position: absolute;
-    height: 12vh;
-    border-right: 2px dotted white;
-    top: -12vh;
-    left: 50%;
-    opacity:0.5;
-}
 
 .circle-start {
-    position: absolute;
+    position: relative;
     margin-left: 1px;
-    top: -10px;
+    top: 10px;
     left: 50%;
     width: 20px;
     height: 20px;
@@ -82,64 +75,50 @@
     transform: translate(-50%, -50%);
 }
 
-
 .dotted-line-p2 {
-    position: absolute;
+    position: relative;
     width: 20vh;
     height: 20vh;
     border-bottom: 2px dotted white;
     border-right: 2px dotted white;
     border-top: 2px dotted white;
-    margin-left: -2px;
     top: 100%;
-}
-
-.dotted-line-p2 {
-    position: absolute;
-    width: 20vh;
-    height: 20vh;
-    border-bottom: 2px dotted white;
-    border-right: 2px dotted white;
-    border-top: 2px dotted white;
-    margin-top: 2px;
-    margin-left: -2px;
-    top: 100%;
+    left:50%;
 }
 
 .dotted-line-p2-reverse {
-    position: absolute;
+    position: relative;
     width: 20vh;
     height: 20vh;
     border-bottom: 2px dotted white;
     border-left: 2px dotted white;
     border-top: 2px dotted white;
-    margin-left: -2px;
     top: 100%;
-    right:0;
+    left: 50%;
+    transform : translate(-100%, 0);
 }
 
 
 .dotted-line-p3-reverse {
-    position: absolute;
+    position: relative;
     height: 10vh;
     border-right: 2px dotted white;
     top: 100%;
-    right:0;
+    right:50%;
 }
 
 .dotted-line-p3 {
-    position: absolute;
+    position: relative;
     height: 10vh;
     border-right: 2px dotted white;
     top: 100%;
-    left:0;
+    right: 50%;
 }
 
 .circle-end {
     position: absolute;
-    margin-left: -1px;
     margin-top: 10px;
-    top: 10vh;
+    margin-left: 1px;
     left: 50%;
     width: 20px;
     height: 20px;
@@ -147,5 +126,8 @@
     border: 1px white solid;
     border-radius: 50%;
     transform: translate(-50%, -50%);
+}
+.blank-space {
+    margin-bottom: 30vh;
 }
 

@@ -256,13 +256,6 @@ function RotatingBrain({modelDirectory, containerRef, size}) {
         const thetaSpacing = (2 * Math.PI) / numberOfColumns;  // Angle spacing for the columns.
         const ySpacing = 0.05;  // Vertical spacing for the rows.
 
-        const randomX = []
-        const randomZ = []
-        for (let i = 0; i < 3; i++) {
-            randomX.push((Math.random() < 0.5 ? -1 : 1) * Math.random() * 0.5)
-            randomZ.push((Math.random() < 0.5 ? -1 : 1) * Math.random() * 0.5 - 1.9)
-        }
-
         for (let i = 0; i < mesh.count; i++) {
 
             const dummy = new Object3D()
@@ -315,10 +308,6 @@ function RotatingBrain({modelDirectory, containerRef, size}) {
 
             // ML position -> Data position
             tl.add(createTween(i, mesh, dummy, position5_dataPositions[i]), 3.0)
-            // Set the position of the dummy object to the data position
-            setDummy(dummy, position5_dataPositions[i]);
-
-            // Data Visualization: Stretched out wave, spaced out spheres, almost like a 3d equalizer or something
 
         }
 
@@ -410,6 +399,10 @@ function RotatingBrain({modelDirectory, containerRef, size}) {
 
         // Updates GSAP timeline to wherever the user is scrolled to
         handleScroll();
+
+        console.log("Loaded!")
+        // EDIT THE SIZE ALGORITHM,, IT DOES NOT WORK TO CHANGE SIZE
+        // AT ALL, thx <3
 
         // Cleanup
         return () => {

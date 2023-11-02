@@ -58,10 +58,52 @@ function Circle({i, onFinish, focus, setClickedIndex, color, circleRef}) {
     );
 }
 
+const TiltCard = ({index, props, description, setClickedIndex, mobile}) => {
+    return (
+        <Tilt glareBorderRadius={'10px'} tiltEnable={!mobile} glarePosition={'all'} glareEnable={true} glareMaxOpacity={0.2} tiltMaxAngleX={10} tiltMaxAngleY={3} scale={1.03}>
+            <div className="description-item">
+                <div className="description-text">
+                    <h3>{description.title}</h3>
+                    {description.subDescription.map((line, index) => (
+                        <p key={index}>{line}</p>
+                    ))}
+                </div>
+                <Circle i={index} onFinish={props.onFinish} focus={description.focus} color={props.colors[index]} setClickedIndex={setClickedIndex} circleRef={props.circleRefs[index]}/>
+            </div>
+        </Tilt>
+        )
+}
+
+const DottedLineTrail = ({index, children}) => {
+    return (
+    <>
+        {(index === 0)?
+            <div className="dotted-line">
+                <div className="circle-start"/>
+                <div className="dotted-line-p1"/>
+            </div>
+            : null}
+        {children}
+        {(index !== 3)?
+            <div className="dotted-line">
+                <div className="dotted-line-p1"/>
+                {(index % 2 === 0)? <div className="dotted-line-p2"/>: <div className="dotted-line-p2-reverse"/>}
+                <div className="dotted-line-p1"/>
+            </div>
+            :
+            <div className="dotted-line blank-space">
+                <div className="dotted-line-p1"/>
+                <div className="circle-end"/>
+            </div>
+        }
+    </>
+    )
+}
+
 function Description(props) {
-    let gyro = false;
+    let mobile = false;
     if (window.innerWidth < 500) {
-        gyro = true;
+        mobile = true;
     }
 
     const [clickedIndex, setClickedIndex] = useState(null);
@@ -75,35 +117,9 @@ function Description(props) {
     return (
         <div className="description-column">
             {props.descriptions.map((description, index) => (
-                <motion.div key={index}
-                            initial="hidden"
-                            animate={clickedIndex === null ? "visible" : clickedIndex === index ? "visible" : "hidden"}
-                            custom={index}>
-                        <Tilt glareBorderRadius={'10px'} tiltEnable={!gyro} glarePosition={'all'} glareEnable={true} glareMaxOpacity={0.2} tiltMaxAngleX={10} tiltMaxAngleY={3} scale={1.03}>
-                            <div className="description-item">
-                                {(index !== 3)?
-                                    <div className="dotted-line-p1">
-                                        {(index % 2 === 0)? <div className="dotted-line-p2">
-                                            <div className="dotted-line-p3"/>
-                                        </div>: <div className="dotted-line-p2-reverse">
-                                            <div className="dotted-line-p3-reverse"/>
-                                        </div>}
-                                    </div>: <div className="dotted-line-p1">
-                                        <div className="circle-end"/>
-                                    </div>}
-                                {(index === 0)? <div className="dotted-line-p1-reverse">
-                                    <div className="circle-start"/>
-                                </div> : null}
-                                <div className="description-text">
-                                    <h3>{description.title}</h3>
-                                    {description.subDescription.map((line, index) => (
-                                        <p key={index}>{line}</p>
-                                    ))}
-                                </div>
-                                <Circle i={index} onFinish={props.onFinish} focus={description.focus} color={props.colors[index]} setClickedIndex={setClickedIndex} circleRef={props.circleRefs[index]}/>
-                            </div>
-                        </Tilt>
-                </motion.div>
+                <DottedLineTrail index={index}>
+                    <TiltCard index={index} props={props} description={description} setClickedIndex={setClickedIndex} mobile={mobile}/>
+                </DottedLineTrail>
             ))}
         </div>
     );
