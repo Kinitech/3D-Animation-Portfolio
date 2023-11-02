@@ -497,7 +497,7 @@ function ThreeJSBackground({setLoaded}) {
 
     const maxSize = 0.9;
     const minSize = 0.65;
-    const minSizeWidth = 500;
+    const minSizeWidth = 600;
     const handleResize = () => {
         const newSize = minSize * window.innerWidth / minSizeWidth
         if (newSize < maxSize) {
