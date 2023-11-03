@@ -25,7 +25,7 @@ export const Carousel = ({ lines }) => {
                         style={{
                             transform: `
                                 rotate(${lineAngle}deg)
-                                translate(3em)
+                                translate(${lines.length - 2}em)
                                 rotate(${-angle - lineAngle}deg)
                             `
                         }}

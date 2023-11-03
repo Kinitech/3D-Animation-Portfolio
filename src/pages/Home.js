@@ -21,7 +21,7 @@ function Home({page, onFinish, colors, circleRefs}) {
         {
             title: 'Full-stack Development',
             subDescription: ['Experience working in a variety of languages and frameworks'],
-            focus: ['React', 'Python', 'AWS', 'React Native'],
+            focus: ['Python', 'AWS', 'React', 'Node.js', 'Firebase', 'JavaScript'],
         },
         {
             title: 'Machine Learning',

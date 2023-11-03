@@ -60,8 +60,7 @@ function Circle({i, onFinish, focus, setClickedIndex, color, circleRef}) {
 
 const TiltCard = ({index, props, description, setClickedIndex, mobile}) => {
     return (
-        <Tilt glareBorderRadius={'10px'} tiltEnable={!mobile} glarePosition={'all'} glareEnable={true} glareMaxOpacity={0.2} tiltMaxAngleX={10} tiltMaxAngleY={3} scale={1.03}>
-            <div className="description-item">
+        <Tilt className='description-item' glareBorderRadius={'10px'} tiltEnable={!mobile} glarePosition={'all'} glareEnable={true} glareMaxOpacity={0.2} tiltMaxAngleX={10} tiltMaxAngleY={3} scale={1.03}>
                 <div className="description-text">
                     <h3>{description.title}</h3>
                     {description.subDescription.map((line, index) => (
@@ -69,7 +68,6 @@ const TiltCard = ({index, props, description, setClickedIndex, mobile}) => {
                     ))}
                 </div>
                 <Circle i={index} onFinish={props.onFinish} focus={description.focus} color={props.colors[index]} setClickedIndex={setClickedIndex} circleRef={props.circleRefs[index]}/>
-            </div>
         </Tilt>
         )
 }

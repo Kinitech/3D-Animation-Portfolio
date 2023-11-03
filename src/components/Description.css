@@ -17,6 +17,7 @@
 }
 
 .description-column {
+    scroll-snap-type: y proximity;
     position: relative;
     margin: 90vh 0 0 0;
     font-family: Futura, sans-serif;
@@ -24,6 +25,7 @@
 }
 
 .description-item {
+    scroll-snap-align: center;
     position: relative;
     display: flex;
     justify-content: space-between;

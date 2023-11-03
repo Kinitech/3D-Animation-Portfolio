@@ -457,7 +457,7 @@ function ThreeJSMesh({setLoaded}) {
 
     return (
         <div ref={containerRef} className="threejs-background">
-            <Canvas alpha style={{background:"none"}} dpr={window.devicePixelRatio} camera={{position: [0, 0, 1.2], fov: cameraFov, near: 0.1, far: 100}}>
+            <Canvas dpr={window.devicePixelRatio} camera={{position: [0, 0, 1.2], fov: cameraFov, near: 0.1, far: 100}}>
                 <WireframeBackground cameraFov={cameraFov} />
                 <ambientLight intensity={0.5} />
                 <directionalLight position={[0, 10, 5]} />

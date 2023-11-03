@@ -1,5 +1,5 @@
-import {BufferGeometry, Color, Float32BufferAttribute, LineBasicMaterial, LineSegments, ShaderMaterial} from 'three';
-import {useEffect, useRef} from "react";
+import {BufferGeometry, Color, Float32BufferAttribute, ShaderMaterial} from 'three';
+import {useRef} from "react";
 import {useFrame} from "@react-three/fiber";
 
 function createSphereWireframe(radius, segments) {
@@ -97,11 +97,6 @@ function WireframeBackground() {
     useFrame((state) => {
         meshRef.current.rotation.y += 0.0001;
     });
-
-
-
-
-
     return (
         <lineSegments ref={meshRef} geometry={geometry} material={material} position={[0, 0, 0.7]} />
     );
