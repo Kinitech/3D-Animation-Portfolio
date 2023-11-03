@@ -1,0 +1,5 @@
+.carousel {
+    user-select: none;
+    z-index: 9;
+    margin-top: 15%;
+}

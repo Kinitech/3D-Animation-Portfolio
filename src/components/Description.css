@@ -34,17 +34,8 @@
     overflow: visible;
 }
 
-
-
 .description-text {
     flex: 1;
-}
-
-
-.carousel {
-    user-select: none;
-    z-index: 9;
-    margin-top: 25%;
 }
 
 .dotted-line {

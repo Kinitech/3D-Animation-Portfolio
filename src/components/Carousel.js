@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import './Carousel.css';
 
 export const Carousel = ({ lines }) => {
     const [angle, setAngle] = useState(0);
