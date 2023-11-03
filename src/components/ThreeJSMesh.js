@@ -1,4 +1,4 @@
-import './ThreeJSBackground.css';
+import './ThreeJSMesh.css';
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {Canvas, useLoader, useThree} from '@react-three/fiber';
 import {GLTFLoader} from 'three/examples/jsm/loaders/GLTFLoader';
@@ -6,6 +6,7 @@ import {Color, Object3D, ShaderMaterial, SphereGeometry, Vector3} from "three";
 import {InstancedUniformsMesh} from 'three-instanced-uniforms-mesh'
 import {gsap} from 'gsap'
 import {throttle} from "lodash";
+import WireframeBackground from "./WireframeBackground";
 
 function createTween(i, mesh, dummy, targetPosition, duration=1.0, paused=false) {
     return gsap.fromTo(dummy.position, {
@@ -301,7 +302,7 @@ function RotatingMesh({modelDirectory, containerRef, size, setLoaded}) {
         const yRotateTween = gsap.to(instancedBrainRef.current.rotation, {
             y: "+=6.28319",  // This adds a full rotation in radians (360 degrees) on the y-axis
             repeat: -1,      // Repeat indefinitely
-            duration: 20,     // Duration of one complete rotation;
+            duration: 40,     // Duration of one complete rotation;
             ease: "none",    // Linear rotation without any easing
         });
 
@@ -309,43 +310,9 @@ function RotatingMesh({modelDirectory, containerRef, size, setLoaded}) {
         const xRotateTween = gsap.to(instancedBrainRef.current.rotation, {
             x: "+=6.28319",  // This adds a full rotation in radians (360 degrees) on the x-axis
             repeat: -1,      // Repeat indefinitely
-            duration: 20,     // Duration of one complete rotation;
+            duration: 40,     // Duration of one complete rotation;
             ease: "none",    // Linear rotation without any easing
             paused: true,    // Pause the tween until the yRotateTween is done
-        });
-
-        let frequency = 2;
-        let amplitude = 0.5;
-        let waveSpeed = 1.0;
-
-        const updateRippleEffect = () => {
-            const timeElapsed = (performance.now() / 1000);
-
-            for (let i = 0; i < instancedBrainRef.current.count; i++) {
-                const dummy = new Object3D()
-                instancedBrainRef.current.getMatrixAt(i, dummy.matrix);
-                const position = new Vector3().setFromMatrixPosition(dummy.matrix);
-                initialiseSphere(i, mesh, dummy, position)
-                // Calculate a sine wave based on the position of the instance
-                const yOffset = Math.sin(position.x * frequency + timeElapsed * waveSpeed) * amplitude;
-                position.y += yOffset;
-                dummy.matrix.setPosition(position);
-                instancedBrainRef.current.setMatrixAt(i, dummy.matrix);
-            }
-
-            instancedBrainRef.current.instanceMatrix.needsUpdate = true;
-        };
-
-
-        const newTween = gsap.to(instancedBrainRef.current, {
-            paused:true,
-            duration: 5, // Adjust this for the ripple effect's duration
-            repeat: -1, // Keep the ripple effect repeating indefinitely
-            yoyo: true, // Make the animation play forwards and then backwards, creating a seamless loop
-            ease: "sine.inOut", // A sine-based ease will make the ripple more water-like
-            onUpdate: function() {
-                updateRippleEffect()
-            }
         });
 
         // Change from y-axis rotation to x-axis rotation at 1.1 seconds
@@ -462,7 +429,7 @@ function RotatingMesh({modelDirectory, containerRef, size, setLoaded}) {
     return null;
 }
 
-function ThreeJSBackground({setLoaded}) {
+function ThreeJSMesh({setLoaded}) {
     const containerRef = useRef();
     const [size, setSize] = useState(1.2);
 
@@ -486,9 +453,12 @@ function ThreeJSBackground({setLoaded}) {
         }
     };
 
+    const cameraFov = 75;
+
     return (
-        <div ref={containerRef} className="threejs-background" style={{willChange:"contents"}}>
-            <Canvas dpr={window.devicePixelRatio} camera={{position: [0, 0, 1.2], fov: 75, near: 0.1, far: 100}}>
+        <div ref={containerRef} className="threejs-background">
+            <Canvas alpha style={{background:"none"}} dpr={window.devicePixelRatio} camera={{position: [0, 0, 1.2], fov: cameraFov, near: 0.1, far: 100}}>
+                <WireframeBackground cameraFov={cameraFov} />
                 <ambientLight intensity={0.5} />
                 <directionalLight position={[0, 10, 5]} />
                 <RotatingMesh modelDirectory={'/static/brain.glb'} containerRef={containerRef} size={size} setLoaded={setLoaded}/>
@@ -497,4 +467,4 @@ function ThreeJSBackground({setLoaded}) {
     );
 }
 
-export default ThreeJSBackground;
+export default ThreeJSMesh;

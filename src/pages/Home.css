@@ -40,11 +40,12 @@
     position: absolute;
     top: 0;
     left: 5vw;
-    width: 100%;
+    width: 90vw;
     color: aliceblue;
     font-size: 15px;
     padding-bottom: 5em;
     margin: 2em 2em 2em 0;
+    z-index: 1;
 }
 
 /* Tablet Styles */

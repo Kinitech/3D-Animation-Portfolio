@@ -1,7 +1,7 @@
 import './Home.css';
 import Description from "../components/Description";
 import AnimatedText from "../components/AnimatedText";
-import ThreeJSBackground from "../components/ThreeJSBackground";
+import ThreeJSMesh from "../components/ThreeJSMesh";
 import {useEffect, useState} from "react";
 
 function LoadingAnimation({fadeOut}) {
@@ -63,7 +63,7 @@ function Home({page, onFinish, colors, circleRefs}) {
             </div>
             <div className="container">
                 {showLoading ? <LoadingAnimation fadeOut={loaded}/> : null}
-                <ThreeJSBackground setLoaded={setLoaded}/>
+                <ThreeJSMesh setLoaded={setLoaded}/>
                 <Description page={page} colors={colors} descriptions={descriptions} onFinish={onFinish} circleRefs={circleRefs}/>
             </div>
         </>
