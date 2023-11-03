@@ -1,7 +1,6 @@
 import './App.css';
-import {useCallback, useRef, useState} from "react";
+import {useRef, useState} from "react";
 import Home from "./pages/Home";
-import Neuro from "./pages/Neuro";
 import BubblePage from "./components/Page";
 
 const colors = [
@@ -16,20 +15,20 @@ function App() {
     const [color, setColor] = useState(null);
     const circleRefs = [useRef(null), useRef(null), useRef(null), useRef(null)];
 
-    const handleFinishTransition = useCallback((i) => {
+    const handleFinishTransition = ((i) => {
         setPage(i);
         setColor(colors[i - 2]);
         // Prevent scrolling
         document.body.style.overflow = 'hidden';
-    }, [colors]);
+    });
 
-    const handleBack = useCallback((i) => {
+    const handleBack = ((i) => {
         circleRefs[i - 2].current.style.transform = 'scale(1)';
         circleRefs[i - 2].current.style.fontSize = '1em';
         setPage(1); // go back to home page
         // Allow scrolling
         document.body.style.overflow = 'auto';
-    }, []);
+    });
 
     return (
         <div className="App">

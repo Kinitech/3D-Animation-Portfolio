@@ -58,8 +58,8 @@ function createSphereWireframe(radius, segments) {
 }
 
 function WireframeBackground() {
-    const radius = 1;
-    const segments = 100;
+    const radius = 2;
+    const segments = 75;
 
     const geometry = createSphereWireframe(radius, segments);
 
@@ -98,7 +98,7 @@ function WireframeBackground() {
         meshRef.current.rotation.y += 0.0001;
     });
     return (
-        <lineSegments ref={meshRef} geometry={geometry} material={material} position={[0, 0, 0.7]} />
+        <lineSegments ref={meshRef} geometry={geometry} material={material} position={[0, 0, -0.7]} />
     );
 }
 

@@ -196,9 +196,8 @@ function RotatingMesh({modelDirectory, containerRef, size, setLoaded}) {
         new Color(0x7B68EE), // MediumSlateBlue
         new Color(0x6A5ACD), // SlateBlue
     ], []);
-    const point = new Vector3();
 
-    const tl = gsap.timeline({paused: true});
+    const tl = useMemo(() => gsap.timeline({paused: true}), []);
 
     useEffect(() => {
         if (instancedBrainRef.current) {
@@ -356,13 +355,14 @@ function RotatingMesh({modelDirectory, containerRef, size, setLoaded}) {
             yRotateTween.kill();
             xRotateTween.kill();
         };
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []); // Empty dependency array to run only once on mount and unmount
 
     const handleScroll = useCallback(() => {
         const totalScrollHeight = document.documentElement.scrollHeight - window.innerHeight;
         const scrolled = window.scrollY;
         tl.progress((scrolled / totalScrollHeight));
-    }, []);
+    }, [tl]);
 
     useEffect(() => {
         const throttledHandleScroll = throttle(handleScroll, 5);
@@ -372,7 +372,7 @@ function RotatingMesh({modelDirectory, containerRef, size, setLoaded}) {
         };
     }, [handleScroll]);
 
-    function animateHoverUniform(value) {
+    const animateHoverUniform = useCallback((value) => {
         gsap.to(uniforms, {
             uHover: value,
             duration: 0.25,
@@ -381,8 +381,10 @@ function RotatingMesh({modelDirectory, containerRef, size, setLoaded}) {
                     instancedBrainRef.current.setUniformAt('uHover', i, uniforms.uHover)
                 }
             }
-        })
-    }
+        });
+    }, [uniforms, instancedBrainRef]); // Include all dependencies that are used inside the callback
+
+    const point = useMemo(() => new Vector3(), []);
 
 // Modify your handleMouseMove function like this
     const handleMouseMove = useCallback((event) => {
@@ -413,7 +415,7 @@ function RotatingMesh({modelDirectory, containerRef, size, setLoaded}) {
                 }
             }
         })
-    }, []);
+    }, [point, isHovered, containerRef, animateHoverUniform]);
 
 
 
@@ -424,7 +426,7 @@ function RotatingMesh({modelDirectory, containerRef, size, setLoaded}) {
         return () => {
             document.removeEventListener('mousemove', handleMouseMove, {passive: true})
         };
-    }, []);
+    }, [handleMouseMove]);
 
     return null;
 }

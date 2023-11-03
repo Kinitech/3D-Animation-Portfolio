@@ -1,10 +1,9 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect } from 'react';
 import { Carousel } from './Carousel';
-import { motion } from "framer-motion"
 import Tilt from 'react-parallax-tilt';
 import './Description.css';
 
-function Circle({i, onFinish, focus, setClickedIndex, color, circleRef}) {
+function Circle({i, onFinish, focus, color, circleRef}) {
 
     useEffect(() => {
         const circle = circleRef.current;
@@ -45,7 +44,6 @@ function Circle({i, onFinish, focus, setClickedIndex, color, circleRef}) {
         setTimeout(() => {
             onFinish(i + 2);
         }, 1000);  // Duration should match with CSS transition time
-        setClickedIndex(i); // set clicked index
     }
 
 
@@ -104,19 +102,11 @@ function Description(props) {
         mobile = true;
     }
 
-    const [clickedIndex, setClickedIndex] = useState(null);
-
-    useEffect(() => {
-        if (props.page === 1) {
-            setClickedIndex(null)
-        }
-    }, [props.page])
-
     return (
         <div className="description-column">
             {props.descriptions.map((description, index) => (
                 <DottedLineTrail key={index} index={index}>
-                    <TiltCard index={index} props={props} description={description} setClickedIndex={setClickedIndex} mobile={mobile}/>
+                    <TiltCard index={index} props={props} description={description} mobile={mobile}/>
                 </DottedLineTrail>
             ))}
         </div>
