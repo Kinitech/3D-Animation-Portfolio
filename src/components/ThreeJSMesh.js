@@ -2,13 +2,13 @@ import './ThreeJSMesh.css';
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {Canvas, useLoader, useThree} from '@react-three/fiber';
 import {GLTFLoader} from 'three/examples/jsm/loaders/GLTFLoader';
-import {Color, Object3D, ShaderMaterial, SphereGeometry, Vector3} from "three";
+import {Color, Matrix4, Object3D, ShaderMaterial, SphereGeometry, Vector3} from "three";
 import {InstancedUniformsMesh} from 'three-instanced-uniforms-mesh'
 import {gsap} from 'gsap'
 import {throttle} from "lodash";
 import WireframeBackground from "./WireframeBackground";
 
-function createTween(i, mesh, dummy, targetPosition, duration=1.0, paused=false) {
+function createTween(i, mesh, dummy, targetPosition, properties={duration:1.0}) {
     return gsap.fromTo(dummy.position, {
         x: dummy.position.x,
         y: dummy.position.y,
@@ -17,8 +17,7 @@ function createTween(i, mesh, dummy, targetPosition, duration=1.0, paused=false)
         x: targetPosition.x,
         y: targetPosition.y,
         z: targetPosition.z,
-        duration: duration,
-        paused: paused,
+        ...properties,
         onUpdate: () => {
             dummy.updateMatrix();
             mesh.setMatrixAt(i, dummy.matrix);
@@ -108,18 +107,18 @@ function calculateCubePosition(i, edgeLength, numPointsPerEdge) {
 
 function calculateBrainPosition(i, brain) {
     const brainPosition = brain.geometry.attributes.position.array.slice(i * 3, (i * 3) + 3);
-    const brainScale = 1.20;
+    const brainScale = 1.3;
     return new Vector3(brainPosition[0] * brainScale, brainPosition[1] * brainScale, brainPosition[2] * brainScale);
 }
 
-function calculateBinaryPosition(i, numberOfColumns, thetaSpacing, ySpacing, cylinderRadius) {
+function calculateCylinderPosition(i, numberOfColumns, thetaSpacing, ySpacing, cylinderRadius) {
     const column = i % numberOfColumns;
     const row = Math.floor(i / numberOfColumns);
-    const theta = column * thetaSpacing;
+    const theta = column * (thetaSpacing);
     const y = cylinderRadius * Math.cos(theta);
     const x = row * ySpacing;
     const z = cylinderRadius * Math.sin(theta);
-    return new Vector3(x - 0.7, y, z);
+    return new Vector3(x - 2.105, y, z);
 }
 
 function calculateSpherePosition(i, numPoints, scale) {
@@ -160,6 +159,33 @@ function calculateCircularPlanePosition(i, maxRings, radius) {
     return new Vector3(x, y - 0.5, z - 1.9);
 }
 
+function calculateCircleOfSpheres(i, numPoints) {
+    const numOfSpheres = 5; // The total number of spheres in the circle
+    const numOfPointsPerSphere = numPoints / numOfSpheres; // Points per sphere
+    const sphereIndex = Math.floor(i / numOfPointsPerSphere); // Current sphere index
+    const positionInSphere = i % numOfPointsPerSphere; // Position index within the sphere
+
+    // Assuming we want to place these spheres in a circle with a given radius
+    const circleRadius = 1;
+    const thetaSpacing = (2 * Math.PI) / numOfSpheres; // Full circle divided by the number of spheres
+    const theta = sphereIndex * thetaSpacing; // The angle for this sphere on the circle
+
+    // Calculate center position of each sphere on the circle
+    const centerX = Math.cos(theta) * circleRadius;
+    const centerZ = Math.sin(theta) * circleRadius;
+
+    // Now calculate the position of this point on the sphere using calculateSpherePosition
+    const sphereScale = 0.5; // Scale of each individual sphere
+    const spherePoint = calculateSpherePosition(positionInSphere, numOfPointsPerSphere, sphereScale);
+
+    // Adjust the spherePoint by the position of the sphere center to place it correctly
+    spherePoint.x += centerX;
+    // spherePoint.y is the same, as we are creating a horizontal circle of spheres
+    spherePoint.z += centerZ
+
+    return spherePoint;
+}
+
 function setDummy(dummy, position) {
     dummy.position.set(position.x, position.y, position.z);
 }
@@ -196,7 +222,7 @@ function RotatingMesh({modelDirectory, containerRef, size, setLoaded}) {
         new Color(0x7B68EE), // MediumSlateBlue
         new Color(0x6A5ACD), // SlateBlue
     ], []);
-
+    const point = useMemo(() => new Vector3(), []);
     const tl = useMemo(() => gsap.timeline({paused: true}), []);
 
     useEffect(() => {
@@ -222,18 +248,12 @@ function RotatingMesh({modelDirectory, containerRef, size, setLoaded}) {
 
         const mesh = new InstancedUniformsMesh(geometry, material, brain.geometry.attributes.position.count);
 
-        // Store the initial positions for each transition position
-        const position2_neuroPositions = [];
-        const position3_codePositions = [];
-        const position4_mlPositions = [];
-        const position5_dataPositions = [];
-
         // Position 3 Variables
 
         const numberOfColumns = 100;
-        const cylinderRadius = 0.5;  // You can adjust this to increase or decrease the cylinder's radius.
+        const cylinderRadius = 1;  // You can adjust this to increase or decrease the cylinder's radius.
         const thetaSpacing = (2 * Math.PI) / numberOfColumns;  // Angle spacing for the columns.
-        const ySpacing = 0.05;  // Vertical spacing for the rows.
+        const ySpacing = 0.15;  // Vertical spacing for the rows.
 
         for (let i = 0; i < mesh.count; i++) {
 
@@ -250,43 +270,39 @@ function RotatingMesh({modelDirectory, containerRef, size, setLoaded}) {
 
             // - Position 2 : Store the brain positions for each instance
             const brainPosition = calculateBrainPosition(i, brain);
-            position2_neuroPositions.push(brainPosition);
+            // Start position -> Neuro position
+            tl.add(createTween(i, mesh, dummy, brainPosition), 0.0)
+            // Set the position of the dummy object to the brain position
+            setDummy(dummy, brainPosition);
+
 
             // - Position 3 : Store the binary positions for each instance
-            const binaryPosition = calculateBinaryPosition(i, numberOfColumns, thetaSpacing, ySpacing, cylinderRadius);
-            position3_codePositions.push(binaryPosition);
+            const cylinderPosition = calculateCylinderPosition(i, numberOfColumns, thetaSpacing, ySpacing, cylinderRadius);
+            // Neuro position -> Code position
+            tl.add(createTween(i, mesh, dummy, cylinderPosition), 1.0)
+            // Set the position of the dummy object to the binary position
+            setDummy(dummy, cylinderPosition);
+
 
             // - Position 4 : Store the sphere positions for each instance
             const spherePosition = calculateSpherePosition(i, mesh.count, 0.8);
-            position4_mlPositions.push(spherePosition);
+            // Code position -> ML position
+            tl.add(createTween(i, mesh, dummy, spherePosition), 2.0)
+            // Set the position of the dummy object to the half brain position
+            setDummy(dummy, spherePosition);
+
 
             // - Position 5 : Store the data positions for each instance
-            const dataPosition = calculateCircularPlanePosition(i, 40, 3);
-            position5_dataPositions.push(dataPosition);
+            const dataPosition = calculateCircleOfSpheres(i, mesh.count);
+            // ML position -> Data position
+            tl.add(createTween(i, mesh, dummy, dataPosition), 3.0)
+            // Set the position of the dummy object to the data position
+            setDummy(dummy, dataPosition);
+
 
             // Set the color of the spheres
             const colorIndex = Math.floor( Math.random() * colors.length);
             mesh.setUniformAt('uColor', i , colors[colorIndex])
-
-            // - Create tween for each instance
-
-            // Start position -> Neuro position
-            tl.add(createTween(i, mesh, dummy, position2_neuroPositions[i]), 0.0)
-            // Set the position of the dummy object to the brain position
-            setDummy(dummy, position2_neuroPositions[i]);
-
-            // Neuro position -> Code position
-            tl.add(createTween(i, mesh, dummy, position3_codePositions[i]), 1.0)
-            // Set the position of the dummy object to the binary position
-            setDummy(dummy, position3_codePositions[i]);
-
-            // Code position -> ML position
-            tl.add(createTween(i, mesh, dummy, position4_mlPositions[i]), 2.0)
-            // Set the position of the dummy object to the half brain position
-            setDummy(dummy, position4_mlPositions[i]);
-
-            // ML position -> Data position
-            tl.add(createTween(i, mesh, dummy, position5_dataPositions[i]), 3.0)
 
         }
 
@@ -295,10 +311,10 @@ function RotatingMesh({modelDirectory, containerRef, size, setLoaded}) {
         // Set the reference to mesh
         instancedBrainRef.current = mesh;  // Set the reference to mesh
         // Set the scale of the mesh on mount
-        instancedBrainRef.current.scale.set(size, size, size);
+        mesh.scale.set(size, size, size);
 
         // Y-Axis rotation during "Random position -> Brain position"
-        const yRotateTween = gsap.to(instancedBrainRef.current.rotation, {
+        const yRotateTween = gsap.to(mesh.rotation, {
             y: "+=6.28319",  // This adds a full rotation in radians (360 degrees) on the y-axis
             repeat: -1,      // Repeat indefinitely
             duration: 40,     // Duration of one complete rotation;
@@ -306,7 +322,7 @@ function RotatingMesh({modelDirectory, containerRef, size, setLoaded}) {
         });
 
         // X-Axis rotation during "Brain position -> Binary position"
-        const xRotateTween = gsap.to(instancedBrainRef.current.rotation, {
+        const xRotateTween = gsap.to(mesh.rotation, {
             x: "+=6.28319",  // This adds a full rotation in radians (360 degrees) on the x-axis
             repeat: -1,      // Repeat indefinitely
             duration: 40,     // Duration of one complete rotation;
@@ -314,8 +330,10 @@ function RotatingMesh({modelDirectory, containerRef, size, setLoaded}) {
             paused: true,    // Pause the tween until the yRotateTween is done
         });
 
+
+
         // Change from y-axis rotation to x-axis rotation at 1.1 seconds
-        timelineTransition(instancedBrainRef.current.rotation, tl,
+        timelineTransition(mesh.rotation, tl,
             {'y': 0},
             {'x': 0},
             yRotateTween,
@@ -323,20 +341,12 @@ function RotatingMesh({modelDirectory, containerRef, size, setLoaded}) {
             1.5
         )
         // Change from x-axis rotation to y-axis rotation at 2.65 seconds
-        timelineTransition(instancedBrainRef.current.rotation, tl,
+        timelineTransition(mesh.rotation, tl,
             {'x': 0},
             {'y': 0},
             xRotateTween,
             yRotateTween,
             2.65
-        )
-        // Change from y-axis rotation to no rotation at 3.65 seconds
-        timelineTransition(instancedBrainRef.current.rotation, tl,
-            {'y': 0},
-            {'x': 0},
-            yRotateTween,
-            null,
-            3.15
         )
 
         // Preload the GSAP timeline
@@ -383,8 +393,6 @@ function RotatingMesh({modelDirectory, containerRef, size, setLoaded}) {
             }
         });
     }, [uniforms, instancedBrainRef]); // Include all dependencies that are used inside the callback
-
-    const point = useMemo(() => new Vector3(), []);
 
 // Modify your handleMouseMove function like this
     const handleMouseMove = useCallback((event) => {
