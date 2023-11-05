@@ -5,7 +5,7 @@ import BubblePage from "./components/Page";
 
 const colors = [
     '(144, 207, 239',
-    '(108, 189, 253',
+    '(54, 167, 255',
     '(147, 111, 243',
     '(227, 151, 255'
 ];

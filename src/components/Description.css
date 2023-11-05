@@ -41,6 +41,7 @@
 }
 
 .dotted-line {
+    z-index: -1;
     opacity: 0.5;
     /* Make centered*/
     margin-left: 50%;
