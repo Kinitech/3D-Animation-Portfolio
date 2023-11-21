@@ -3,7 +3,7 @@ import './ProjectsPage.css';
 function ProjectsPage({projects, title, header, color}) {
 
   return (
-      <div>
+      <div className='projects-page'>
           <h1 className='page-header'>{header}</h1>
           <div className='page-title'>{title}</div>
           <div className='project-grid'>
