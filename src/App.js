@@ -35,7 +35,7 @@ function App() {
         document.body.style.overflow = 'auto';
     });
 
-    const disclaimer = "Most my work has been closed source, so I will be filling this up from now... (Nov 2023)!"
+    const disclaimer = "My work has been primarily closed source, so I will be filling this up from now... (Nov 2023)!"
     return (
         <div className="App">
             <Home colors={colors} page={page} onFinish={handleFinishTransition} circleRefs={circleRefs}/>

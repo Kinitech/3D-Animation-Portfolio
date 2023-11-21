@@ -1,8 +1,3 @@
-.document-grid {
-    position: relative;
-    width: 100%;
-    height: 90vh;
-}
 
 .neuro-header {
     height: 6vh;
@@ -11,16 +6,36 @@
 
 }
 
-.item1 {
-    /* Place in center of page*/
-    position: relative;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    height: 100%;
-    max-width: 700px;
+.document-grid {
+    display: grid;
+    grid-template-rows: 1fr auto;
+    height: 85vh; /* Full viewport height */
+    gap: 10px;
 }
 
-.item2 {
-
+.item1, .item2 {
+    display: none; /* Initially hidden */
 }
+
+/* Assuming you have some logic to show either item1 or item2 */
+.item1.active, .item2.active {
+    display: block;
+    max-height: 90vh; /* Adjust this percentage as needed */
+    overflow: auto; /* Enables scrolling if the document is too long */
+}
+
+.buttons {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 10px; /* Space between buttons */
+    padding: 10px;
+}
+
+.button {
+    padding: 5px 10px;
+    cursor: pointer;
+    background-color: white;
+    color: black;
+}
+
