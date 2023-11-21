@@ -1,9 +1,10 @@
-# Work in Progress - React Portfolio
+# 3D Animation React Portfolio
 
 ## Description
 
-This is my portfolio website built with Three JS and React. 
+This is my personal React portfolio site built with Three.js. 
 
-It is a work in progress and will be updated! :)
+It has 3D animation that changes as you scroll down the page, to create an awesome transition between sections.
+This was done using InstancedMesh in Three.js with custom vertex and fragment shaders.
 
 - Byron.
