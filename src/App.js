@@ -49,7 +49,7 @@ function App() {
                         color={color}
                     />}
                     {page === 4 && <ProjectsPage
-                        header='Machine learning projects'
+                        header='ML projects'
                         title={disclaimer}
                         projects={ml_projects}
                         color={color}
