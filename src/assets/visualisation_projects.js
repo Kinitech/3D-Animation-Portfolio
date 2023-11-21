@@ -1,8 +1,8 @@
 const visualisation_projects = [{
     "title":"3D Animation Portfolio (this site!)",
-    "description":"Made using React and Three.js!",
+    "description":"Made using React and Three.js. Hosted using Firebase.",
     "github":"https://www.github.com/Kinitech/3D-Animation-Portfolio",
-    "link":"https://byron-84f25.web.app/",
+    "link":"https://byron.page/",
     "img":'logo512.png'
 }]
 
