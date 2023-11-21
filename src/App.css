@@ -57,26 +57,6 @@ body {
   margin: 2em 2em 2em 0;
 }
 
-.page {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100vw;
-  height: 100vh;
-  padding: 1rem;
-  color: white
-}
-
-.page-exit-button {
-  position: absolute;
-  top: 1rem;
-  right: 3rem;
-  border: none;
-  background: transparent;
-  font-size: 2rem;
-  cursor: pointer
-}
-
 /* Tablet Styles */
 @media only screen and (max-width: 900px) {
   .description-item {

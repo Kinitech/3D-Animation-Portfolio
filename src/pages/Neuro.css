@@ -1,28 +1,26 @@
 .document-grid {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    grid-template-rows: 1fr;
-    grid-gap: 10px;
-    grid-template-areas:
-      "a b";
-    margin: 10px;
+    position: relative;
+    width: 100%;
+    height: 90vh;
 }
-
 
 .neuro-header {
-    /* Place at top of the page */
-    max-width: 90%;
-}
+    height: 6vh;
+    position: relative;
+    top: -0.5vh;
 
-.scrollable {
-    /* Make the div scrollable */
-    overflow-y: scroll;
-    max-height: 80vh;
 }
 
 .item1 {
-    grid-area: a;
+    /* Place in center of page*/
+    position: relative;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    height: 100%;
+    max-width: 700px;
 }
+
 .item2 {
-    grid-area: b;
+
 }

@@ -2,6 +2,11 @@ import './App.css';
 import {useRef, useState} from "react";
 import Home from "./pages/Home";
 import BubblePage from "./components/Page";
+import Neuro from "./pages/Neuro";
+import ProjectsPage from "./pages/ProjectsPage";
+import coding_projects from "./assets/coding_projects";
+import ml_projects from "./assets/ml_projects";
+import visualisation_projects from "./assets/visualisation_projects";
 
 const colors = [
     '(144, 207, 239',
@@ -30,15 +35,31 @@ function App() {
         document.body.style.overflow = 'auto';
     });
 
+    const disclaimer = "Most my work has been closed source, so I will be filling this up from now... (Nov 2023)!"
     return (
         <div className="App">
             <Home colors={colors} page={page} onFinish={handleFinishTransition} circleRefs={circleRefs}/>
             {page !== 1 &&
                 <BubblePage i={page} color={color} onBack={handleBack}>
-                    {page === 2 && <div>Page 2</div>}
-                    {page === 3 && <div>Page 3</div>}
-                    {page === 4 && <div>Page 4</div>}
-                    {page === 5 && <div>Page 5</div>}
+                    {page === 2 && <Neuro/>}
+                    {page === 3 && <ProjectsPage
+                        header='Full-stack projects'
+                        title={disclaimer}
+                        projects={coding_projects}
+                        color={color}
+                    />}
+                    {page === 4 && <ProjectsPage
+                        header='Machine learning projects'
+                        title={disclaimer}
+                        projects={ml_projects}
+                        color={color}
+                    />}
+                    {page === 5 && <ProjectsPage
+                        header='Visualisation projects'
+                        title={disclaimer}
+                        projects={visualisation_projects}
+                        color={color}
+                    />}
                 </BubblePage>
             }
         </div>

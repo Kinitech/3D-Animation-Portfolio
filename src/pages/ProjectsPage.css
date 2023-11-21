@@ -1,0 +1,116 @@
+.page-header {
+    position:relative;
+    top:-0.7vh;
+}
+
+.page-title {
+    margin:20px;
+}
+
+
+/* Style for the grid container */
+.project-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 20px;
+    padding: 20px;
+    max-height: 80vh;
+    overflow-y: auto;
+    align-items: center;
+    position: relative;
+    bottom: 20px;
+}
+
+/* Content container for title, description, and buttons */
+.project-content {
+    position: absolute;
+    bottom: 20px;
+    left: 0;
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    z-index: 2;
+}
+
+/* Style for each project card */
+.project-item {
+    position: relative; /* Relative positioning to contain the absolutely positioned image */
+    color: #fff; /* White text color for better contrast */
+    background-color: #ffffff;
+    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+    border-radius: 10px;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 20px;
+    height: 250px;
+    max-width: 500px;
+}
+
+.project-image {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover; /* Cover the whole area without stretching */
+    border-radius: 10px; /* Match the border-radius of the card */
+    z-index: 0;
+}
+
+/* Overlay at the bottom of the card for text */
+.project-item::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    height: 50%; /* Adjust the height of the gradient overlay as needed */
+    background: rgba(0,0,0,0.7);
+    z-index: 1;
+    border-bottom-left-radius: 10px; /* Match the border-radius of the card */
+    border-bottom-right-radius: 10px;
+}
+
+/* Ensure the text and buttons are above the image and overlay */
+.project-title, .project-description, .project-button-container {
+    position: relative;
+    z-index: 2;
+}
+
+.project-title {
+    font-weight: bold;
+    margin: -10px 0;
+}
+
+.project-description {
+    text-align: center;
+    margin-bottom: 20px;
+}
+
+.project-button-container {
+    display: flex;
+    justify-content: space-around; /* This will space out the buttons equally */
+    width: 100%; /* Ensure the container spans the full width of the card */
+}
+
+.project-item a {
+    color: #fff; /* Text color */
+    padding: 10px 15px; /* Padding inside the buttons */
+    border-radius: 5px; /* Rounded corners for the buttons */
+    text-decoration: none; /* Remove underline from links */
+    transition: color 0.3s ease; /* Smooth background color transition on hover */
+}
+
+.project-item a:hover {
+    color: #000000; /* Darker button color on hover */
+}
+
+/* Responsive design for smaller screens */
+@media (max-width: 600px) {
+    .project-grid {
+        grid-template-columns: 1fr;
+    }
+}

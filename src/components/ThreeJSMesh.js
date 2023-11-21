@@ -2,7 +2,7 @@ import './ThreeJSMesh.css';
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {Canvas, useLoader, useThree} from '@react-three/fiber';
 import {GLTFLoader} from 'three/examples/jsm/loaders/GLTFLoader';
-import {Color, Matrix4, Object3D, ShaderMaterial, SphereGeometry, Vector3} from "three";
+import {Color, Object3D, ShaderMaterial, SphereGeometry, Vector3} from "three";
 import {InstancedUniformsMesh} from 'three-instanced-uniforms-mesh'
 import {gsap} from 'gsap'
 import {throttle} from "lodash";
@@ -133,32 +133,6 @@ function calculateSpherePosition(i, numPoints, scale) {
     return new Vector3(x * scale, y * scale, z * scale);
 }
 
-function calculateCircularPlanePosition(i, maxRings, radius) {
-    let totalPoints = 0;
-    let ring = 0;
-    let pointsOnThisRing = 0;
-
-    // Calculate which ring the point should be on
-    for (let r = 1; r <= maxRings; r++) {
-        const pointsOnRing = Math.floor(2 * Math.PI * r);
-        if (i < totalPoints + pointsOnRing) {
-            ring = r;
-            pointsOnThisRing = pointsOnRing;
-            break;
-        }
-        totalPoints += pointsOnRing;
-    }
-
-    const angleIncrement = 2 * Math.PI / pointsOnThisRing;
-    const angle = (i - totalPoints) * angleIncrement;
-    const x = ring * (radius / maxRings) * Math.cos(angle);
-    const z = ring * (radius / maxRings) * Math.sin(angle);
-
-    const y = 0;
-
-    return new Vector3(x, y - 0.5, z - 1.9);
-}
-
 function calculateCircleOfSpheres(i, numPoints) {
     const numOfSpheres = 5; // The total number of spheres in the circle
     const numOfPointsPerSphere = numPoints / numOfSpheres; // Points per sphere
@@ -251,7 +225,7 @@ function RotatingMesh({modelDirectory, containerRef, size, setLoaded}) {
         // Position 3 Variables
 
         const numberOfColumns = 100;
-        const cylinderRadius = 1;  // You can adjust this to increase or decrease the cylinder's radius.
+        const cylinderRadius = 0.8  // You can adjust this to increase or decrease the cylinder's radius.
         const thetaSpacing = (2 * Math.PI) / numberOfColumns;  // Angle spacing for the columns.
         const ySpacing = 0.15;  // Vertical spacing for the rows.
 
@@ -452,7 +426,7 @@ function ThreeJSMesh({setLoaded}) {
     }, []); // Empty dependency array to run only once on mount and unmount
 
     const maxSize = 0.9;
-    const minSize = 0.65;
+    const minSize = 0.75;
     const minSizeWidth = 600;
     const handleResize = () => {
         const newSize = minSize * window.innerWidth / minSizeWidth
@@ -471,7 +445,7 @@ function ThreeJSMesh({setLoaded}) {
                 <WireframeBackground cameraFov={cameraFov} />
                 <ambientLight intensity={0.5} />
                 <directionalLight position={[0, 10, 5]} />
-                <RotatingMesh modelDirectory={'/static/brain.glb'} containerRef={containerRef} size={size} setLoaded={setLoaded}/>
+                <RotatingMesh modelDirectory={'./static/brain.glb'} containerRef={containerRef} size={size} setLoaded={setLoaded}/>
             </Canvas>
         </div>
     );

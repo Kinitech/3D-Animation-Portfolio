@@ -1,0 +1,19 @@
+
+.page {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    color: white
+}
+
+.page-exit-button {
+    position: absolute;
+    top: 1rem;
+    right: 3rem;
+    border: none;
+    background: transparent;
+    font-size: 2rem;
+    cursor: pointer
+}
