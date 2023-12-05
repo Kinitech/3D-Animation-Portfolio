@@ -26,7 +26,7 @@ function Page({i, color, onBack, children}) {
                 {children}
             </motion.div>
             <button className="page-exit-button" onClick={() => {onBack(i)}}>
-                ✕
+                &#9166;
             </button>
         </div>
     );
