@@ -38,7 +38,12 @@
 .button {
     padding: 5px 10px;
     cursor: pointer;
-    background-color: white;
+    background-color: rgba(0,0,0,0.1);
     color: black;
+    border-radius: 10px;
+}
+
+.button:hover {
+    background-color: rgba(0,0,0,0.2);
 }
 

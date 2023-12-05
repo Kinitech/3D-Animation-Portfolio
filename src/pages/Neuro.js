@@ -20,8 +20,8 @@ function Neuro() {
                 </div>
             </div>
             <div className="buttons">
-                <button className="button" onClick={() => setActiveDocument(1)}>1</button>
-                <button className="button" onClick={() => setActiveDocument(2)}>2</button>
+                <div className="button" onClick={() => setActiveDocument(1)}>{activeDocument === 1 ? <b>1</b> : 1}</div>
+                <div className="button" onClick={() => setActiveDocument(2)}>{activeDocument === 2 ? <b>2</b> : 2}</div>
             </div>
         </>
     );
