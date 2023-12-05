@@ -1,6 +1,10 @@
 import React, { useState } from 'react';
 import './Neuro.css';
-import PDFDocument from "../components/PDFDocument";
+import { Worker } from '@react-pdf-viewer/core';
+// Import the main component
+import { Viewer } from '@react-pdf-viewer/core';
+// Import the styles
+import '@react-pdf-viewer/core/lib/styles/index.css';
 
 function Neuro() {
     const [activeDocument, setActiveDocument] = useState(1);
@@ -15,12 +19,14 @@ function Neuro() {
                 <h1>Research Projects</h1>
             </div>
             <div className="document-grid">
-                <div className={`item1 ${activeDocument === 1 ? 'active' : ''}`}>
-                    <PDFDocument filename={'./static/Jarrett - Pain Capacity 2023 Dissertation.pdf'}/>
-                </div>
-                <div className={`item2 ${activeDocument === 2 ? 'active' : ''}`}>
-                    <PDFDocument filename={"./static/Jarrett - Huntington's Therapies 2023 Dissertation.pdf"}/>
-                </div>
+                <Worker workerUrl="https://unpkg.com/pdfjs-dist@3.11.174/build/pdf.worker.min.js">
+                    <div className={`item1 ${activeDocument === 1 ? 'active' : ''}`}>
+                        <Viewer fileUrl={'./static/Jarrett - Pain Capacity 2023 Dissertation.pdf'}/>
+                    </div>
+                    <div className={`item2 ${activeDocument === 2 ? 'active' : ''}`}>
+                        <Viewer fileUrl={"./static/Jarrett - Huntington's Therapies 2023 Dissertation.pdf"}/>
+                    </div>
+                </Worker>
             </div>
             <div className="buttons">
                 <div className="button" onClick={() => setActiveDocument(1)}>
