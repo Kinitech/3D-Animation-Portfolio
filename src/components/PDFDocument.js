@@ -1,10 +1,16 @@
+import { Worker } from '@react-pdf-viewer/core';
+// Import the main component
+import { Viewer } from '@react-pdf-viewer/core';
+
+// Import the styles
+import '@react-pdf-viewer/core/lib/styles/index.css';
+
 
 function PDFDocument({filename}) {
-    const url = window.location.href + filename.split('./')[1]
-    const source = `https://docs.google.com/gview?url=${url}&embedded=true`
     return (
-            <iframe title={filename} src={source} width="100%" height="100%"/>
-    );
+        <Worker workerUrl="https://unpkg.com/pdfjs-dist@3.11.174/build/pdf.worker.min.js">
+            <Viewer fileUrl={filename} />;
+        </Worker>    );
 }
 
 export default PDFDocument;
