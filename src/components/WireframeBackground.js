@@ -63,12 +63,7 @@ function WireframeBackground() {
 
     const geometry = createSphereWireframe(radius, segments);
 
-    const uniforms = {
-        baseColor: { value: new Color('#4a2b79') }
-    };
-
     const material = new ShaderMaterial({
-        uniforms: uniforms,
         vertexShader: `
         varying vec3 vPosition;
         void main() {
@@ -81,21 +76,22 @@ function WireframeBackground() {
         uniform vec3 baseColor;
         varying vec3 vPosition;
         void main() {
-            float normalisedX = (vPosition.x + 1.0) * 0.5;
-            float wave = 0.05 * sin(normalisedX * 8.0);
-            float r = baseColor.r + wave;
-            float g = baseColor.g;
-            float b = baseColor.b;
-            gl_FragColor = vec4(vec3(r, g, b), 1.0);
+            // Normalize X coordinate to range [0, 1]
+            float normalizedX = (vPosition.x + 1.0) / (2.0 * 2.0);
+            // Interpolate between two colors based on X coordinate
+            vec3 topColor = vec3(0.15, 0.05, 0.35); // Red color for the top
+            vec3 bottomColor = vec3(0.15, 0.05, 0.25); // Blue color for the bottom
+            vec3 gradientColor = mix(bottomColor, topColor, normalizedX * 4.0);
+            gl_FragColor = vec4(gradientColor, 1.0);
         }
-    `
+`
     });
 
     const meshRef = useRef();
 
 
     useFrame((state) => {
-        meshRef.current.rotation.y += 0.0001;
+        meshRef.current.rotation.y += 0.0005;
     });
     return (
         <lineSegments ref={meshRef} geometry={geometry} material={material} position={[0, 0, -0.7]} />

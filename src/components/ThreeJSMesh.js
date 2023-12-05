@@ -426,11 +426,13 @@ function ThreeJSMesh({setLoaded}) {
     }, []); // Empty dependency array to run only once on mount and unmount
 
     const maxSize = 0.9;
-    const minSize = 0.75;
-    const minSizeWidth = 600;
+    const minSize = 0.55;
+    const minSizeWidth = 450;
     const handleResize = () => {
         const newSize = minSize * window.innerWidth / minSizeWidth
-        if (newSize < maxSize) {
+        if (newSize < minSize) {
+            setSize(minSize);
+        } else if (newSize < maxSize) {
             setSize(newSize);
         } else {
             setSize(maxSize);
