@@ -16,7 +16,7 @@
 
 .item1, .item2 {
     width: 100vw;
-    max-width: 1000px;
+    max-width: 768px;
     display: none; /* Initially hidden */
 }
 
@@ -47,3 +47,12 @@
     background-color: rgba(0,0,0,0.2);
 }
 
+@media only screen and (max-width: 600px) {
+    .neuro-header {
+        font-size: 13px;
+    }
+
+    .document-grid {
+        height:70vh;
+    }
+}
