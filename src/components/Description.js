@@ -72,6 +72,19 @@ const TiltCard = ({index, props, description, setClickedIndex, mobile}) => {
         )
 }
 
+const ContactCard = ({index, title, subtitle, mobile}) => {
+    return (
+        <a className='contact-link' href="mailto:byronjarrett14@gmail.com">
+            <Tilt className='description-item description-end' glareBorderRadius={'10px'} tiltEnable={!mobile} glarePosition={'all'} glareEnable={true} glareMaxOpacity={0.2} tiltMaxAngleX={10} tiltMaxAngleY={3} scale={1.03}>
+                    <div className="description-text">
+                        <p>{title}</p>
+                        <p key={index}>{subtitle}</p>
+                    </div>
+            </Tilt>
+        </a>
+    )
+}
+
 const DottedLineTrail = ({index, children, clickedIndex}) => {
 
     return (
@@ -92,9 +105,8 @@ const DottedLineTrail = ({index, children, clickedIndex}) => {
                     <div className="dotted-line-p1"/>
                 </div>
                 :
-                <div className="dotted-line blank-space">
+                <div className="dotted-line">
                     <div className="dotted-line-p1"/>
-                    <div className="circle-end"/>
                 </div>
             }
             </div>
@@ -128,7 +140,14 @@ function Description(props) {
                 <DottedLineTrail key={index} index={index} clickedIndex={clickedIndex}>
                     <TiltCard index={index} props={props} description={description} setClickedIndex={setClickedIndex} mobile={mobile}/>
                 </DottedLineTrail>
+
             ))}
+            <ContactCard title='Contact Me'/>
+            <div className="dotted-line">
+                <div className="dotted-line-p1"/>
+                <div className="circle-start"/>
+            </div>
+            <div className="blank-space"/>
         </div>
     );
 }

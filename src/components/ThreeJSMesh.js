@@ -343,7 +343,8 @@ function RotatingMesh({modelDirectory, containerRef, size, setLoaded}) {
     }, []); // Empty dependency array to run only once on mount and unmount
 
     const handleScroll = useCallback(() => {
-        const totalScrollHeight = document.documentElement.scrollHeight - window.innerHeight;
+        const offset = 100
+        const totalScrollHeight = document.documentElement.scrollHeight - window.innerHeight - offset;
         const scrolled = window.scrollY;
         tl.progress((scrolled / totalScrollHeight));
     }, [tl]);

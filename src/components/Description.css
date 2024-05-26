@@ -127,7 +127,26 @@
     border-radius: 50%;
     transform: translate(-50%, -50%);
 }
+
+.description-end {
+    border: 1px rgba(255,255,255, 0.5) solid;
+    height: 2vh;
+    width: 25%;
+    margin-left: 35.25%;
+    /* Center items vertically */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+
+
+}
+
+.contact-link {
+text-decoration: none;
+color:inherit;
+}
+
 .blank-space {
-    margin-bottom: 35%;
+margin-bottom: 35%;
 }
 

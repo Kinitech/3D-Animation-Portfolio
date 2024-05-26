@@ -1,4 +1,4 @@
-import {BufferGeometry, Color, Float32BufferAttribute, ShaderMaterial} from 'three';
+import {BufferGeometry, Float32BufferAttribute, ShaderMaterial} from 'three';
 import {useRef} from "react";
 import {useFrame} from "@react-three/fiber";
 
