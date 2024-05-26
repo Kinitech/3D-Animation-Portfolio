@@ -142,7 +142,7 @@ function Description(props) {
                 </DottedLineTrail>
 
             ))}
-            <ContactCard title='Contact Me'/>
+            <ContactCard title='Contact me'/>
             <div className="dotted-line">
                 <div className="dotted-line-p1"/>
                 <div className="circle-start"/>

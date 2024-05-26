@@ -26,6 +26,7 @@
 }
 
 .description-item {
+    border: 1px rgba(255,255,255, 0.05) solid;
     scroll-snap-align: center;
     position: relative;
     display: flex;
@@ -129,7 +130,7 @@
 }
 
 .description-end {
-    border: 1px rgba(255,255,255, 0.5) solid;
+    border: 1px rgba(255,255,255, 0.2) solid;
     height: 2vh;
     width: 25%;
     margin-left: 35.25%;
